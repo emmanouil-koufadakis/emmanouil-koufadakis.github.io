@@ -5,14 +5,24 @@ import ThemeToggle from './ThemeToggle.astro';
 import { profile } from '../data/cv';
 import { headshot } from '../data/headshot';
 
+// Every home page section, in page order. Short labels so they fit the top bar.
 const links = [
   { href: '/#experience', label: 'Experience' },
   { href: '/#work', label: 'Case studies' },
+  { href: '/#reviews', label: 'Reviews' },
+  { href: '/#clients', label: 'Brands' },
+  { href: '/#guide', label: 'Career' },
+  { href: '/#about', label: 'About' },
   { href: '/#skills', label: 'Skills' },
   { href: '/#certifications', label: 'Certifications' },
   { href: '/#credits', label: 'Full CV' },
   { href: '/#contact', label: 'Contact' },
 ];
+// Desktop bar: Contact is always shown; of the rest, up to MAX_TABS sit in the bar
+// and the others live in the chevron dropdown (fewer tabs if the bar runs out of room).
+const contact = links[links.length - 1];
+const sections = links.slice(0, -1);
+const MAX_TABS = 4;
 ---
 <header class="nav" data-nav>
   <div class="wrap nav-inner">
@@ -26,9 +36,18 @@ const links = [
       }
       <span class="brand-name">{profile.name}</span>
     </a>
-    <nav class="desktop" aria-label="Main">
+    <nav class="desktop" aria-label="Main" data-desktop-nav data-max={MAX_TABS}>
       <ul class="links">
-        {links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+        {sections.map((l, i) => <li data-i={i} hidden={i >= MAX_TABS}><a href={l.href}>{l.label}</a></li>)}
+        <li class="more" data-more>
+          <button type="button" class="more-btn" aria-expanded="false" aria-controls="more-list" aria-label="More sections" title="More sections">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+          </button>
+          <ul id="more-list" class="more-list">
+            {sections.map((l, i) => <li data-i={i} hidden={i < MAX_TABS}><a href={l.href}>{l.label}</a></li>)}
+          </ul>
+        </li>
+        <li class="pinned"><a href={contact.href}>{contact.label}</a></li>
       </ul>
     </nav>
     <div class="actions">
@@ -73,7 +92,7 @@ const links = [
     height: 100%;
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1.25rem;
   }
   .brand {
     display: inline-flex;
@@ -98,26 +117,94 @@ const links = [
     object-position: 50% 30%;
     box-shadow: 0 0 0 2px var(--color-accent);
   }
+  /* No shrinking: if the bar is too full it overflows, which tells the script to move a tab into the dropdown. */
+  .brand, nav.desktop, .actions { flex: none; }
   nav.desktop { margin-left: auto; }
   .links {
     display: flex;
-    gap: 0.25rem;
+    align-items: center;
+    gap: 0.15rem;
     list-style: none;
     margin: 0;
     padding: 0;
   }
   .links a {
     display: inline-block;
-    padding: 0.55rem 0.8rem;
+    padding: 0.5rem 0.6rem;
     border-radius: 8px;
     color: var(--color-ink-soft);
     text-decoration: none;
     font-weight: 550;
-    font-size: 0.9375rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
     transition: color 0.2s, background-color 0.2s;
   }
   .links a:hover { color: var(--color-ink); background: color-mix(in oklab, var(--color-ink) 7%, transparent); }
   .links a:focus-visible { outline: none; box-shadow: var(--focus-ring); color: var(--color-ink); }
+  .links li[hidden] { display: none; }
+
+  /* ---------- chevron + dropdown ---------- */
+  .more { position: relative; }
+  .more-btn {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 0;
+    border-radius: 8px;
+    color: var(--color-ink-soft);
+    background: transparent;
+    cursor: pointer;
+    transition: color 0.2s, background-color 0.2s;
+  }
+  .more-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: rotate 0.25s var(--ease-out-soft);
+  }
+  .more-btn:hover, .more[data-open] .more-btn { color: var(--color-ink); background: color-mix(in oklab, var(--color-ink) 7%, transparent); }
+  .more-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); color: var(--color-ink); }
+  .more[data-open] .more-btn svg { rotate: 180deg; }
+
+  .more-list {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    z-index: 5;
+    display: none;
+    min-width: 12rem;
+    margin: 0;
+    padding: 0.4rem;
+    list-style: none;
+    border-radius: 14px;
+    border: 1px solid var(--color-line);
+    background: var(--color-bg-raised);
+    box-shadow: 0 24px 48px -16px rgb(0 0 0 / 0.5);
+    opacity: 0;
+    translate: -50% -6px;
+    transition: opacity 0.18s, translate 0.18s var(--ease-out-soft), display 0.18s allow-discrete;
+  }
+  /* Invisible bridge over the gap, so moving the mouse down to the list keeps it open. */
+  .more-list::before { content: ''; position: absolute; left: 0; right: 0; bottom: 100%; height: 12px; }
+  .more[data-open] .more-list,
+  .more:not([data-ready]):hover .more-list,
+  .more:not([data-ready]):focus-within .more-list { display: grid; gap: 1px; opacity: 1; translate: -50% 0; }
+  @starting-style {
+    .more[data-open] .more-list { opacity: 0; translate: -50% -6px; }
+  }
+  .more-list a {
+    display: block;
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    color: var(--color-ink);
+    font-size: 0.9375rem;
+  }
+  .more-list a:focus-visible { box-shadow: inset 0 0 0 2px var(--color-accent); }
   .actions { display: flex; align-items: center; gap: 0.6rem; }
   .cv-btn { min-height: 44px; padding: 0.6rem 1rem; font-size: 0.9375rem; }
 
@@ -160,6 +247,10 @@ const links = [
     background: var(--color-bg-raised);
     color: var(--color-ink);
     box-shadow: 0 24px 48px -16px rgb(0 0 0 / 0.5);
+    /* Ten sections: scroll inside the menu on short screens (e.g. a phone held sideways). */
+    max-height: calc(100dvh - var(--nav-h) - 1rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
     opacity: 0;
     translate: 0 -8px;
     transition: opacity 0.2s, translate 0.2s var(--ease-out-soft), overlay 0.2s allow-discrete, display 0.2s allow-discrete;
@@ -169,12 +260,12 @@ const links = [
     .menu:popover-open { opacity: 0; translate: 0 -8px; }
   }
   .menu::backdrop { background: rgb(0 0 0 / 0.3); }
-  .menu ul { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+  .menu ul { display: grid; gap: 1px; margin: 0; padding: 0; list-style: none; }
   .menu a {
     display: flex;
     align-items: center;
-    min-height: 48px;
-    padding: 0.6rem 0.9rem;
+    min-height: 44px;
+    padding: 0.5rem 0.9rem;
     border-radius: 10px;
     color: var(--color-ink);
     text-decoration: none;
@@ -194,6 +285,8 @@ const links = [
   @media (min-width: 1181px) {
     .menu { display: none; }
   }
+  /* Last resort, if even zero tabs don't fit (e.g. big browser zoom): the name steps aside for the photo. */
+  .nav[data-compact] .brand-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   @media (max-width: 560px) {
     /* Visually hidden but still the link's accessible name. */
     .brand-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -234,5 +327,94 @@ const links = [
     window.matchMedia('(min-width: 1181px)').addEventListener('change', (e) => {
       if (e.matches) close();
     });
+  }
+
+  // ---------- desktop bar: chevron dropdown + "move tabs into it when they don't fit" ----------
+  const desktop = document.querySelector<HTMLElement>('[data-desktop-nav]');
+  const more = desktop?.querySelector<HTMLElement>('[data-more]');
+  const navInner = document.querySelector<HTMLElement>('.nav-inner');
+  if (nav && desktop && more && navInner) {
+    const btn = more.querySelector<HTMLButtonElement>('.more-btn')!;
+    const list = more.querySelector<HTMLElement>('.more-list')!;
+    const barItems = Array.from(desktop.querySelectorAll<HTMLElement>('.links > li[data-i]'));
+    const listItems = Array.from(list.querySelectorAll<HTMLElement>('li[data-i]'));
+    const maxTabs = Number(desktop.dataset.max) || 4;
+    more.dataset.ready = '';
+
+    let closeTimer: ReturnType<typeof setTimeout> | undefined;
+    // Set while Esc hands focus back to the chevron, so that focus doesn't reopen the list.
+    let returningFocus = false;
+    const isOpen = () => more.hasAttribute('data-open');
+    const setOpen = (open: boolean) => {
+      clearTimeout(closeTimer);
+      more.toggleAttribute('data-open', open);
+      btn.setAttribute('aria-expanded', String(open));
+    };
+    const listLinks = () => Array.from(list.querySelectorAll<HTMLAnchorElement>('li:not([hidden]) a'));
+
+    // Mouse: open on hover, close shortly after leaving (unless the keyboard is inside it).
+    more.addEventListener('pointerenter', (e) => {
+      if (e.pointerType !== 'touch') setOpen(true);
+    });
+    more.addEventListener('pointerleave', (e) => {
+      if (e.pointerType === 'touch') return;
+      if (more.contains(document.activeElement) && document.activeElement!.matches(':focus-visible')) return;
+      closeTimer = setTimeout(() => setOpen(false), 180);
+    });
+    // Keyboard: open when the chevron gets focus; Tab then walks through the list.
+    btn.addEventListener('focus', () => {
+      if (!returningFocus && btn.matches(':focus-visible')) setOpen(true);
+    });
+    // Mouse clicks only ever open (hover already did); touch and Enter/Space toggle.
+    btn.addEventListener('click', (e) => {
+      if ((e as PointerEvent).pointerType === 'mouse') setOpen(true);
+      else setOpen(!isOpen());
+    });
+    more.addEventListener('keydown', (e) => {
+      const items = listLinks();
+      const i = items.indexOf(document.activeElement as HTMLAnchorElement);
+      if (e.key === 'Escape' && isOpen()) {
+        setOpen(false);
+        returningFocus = true;
+        btn.focus();
+        returningFocus = false;
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setOpen(true);
+        items[Math.min(i + 1, items.length - 1)]?.focus();
+      } else if (e.key === 'ArrowUp' && i >= 0) {
+        e.preventDefault();
+        (i === 0 ? btn : items[i - 1]).focus();
+      }
+    });
+    more.addEventListener('focusout', (e) => {
+      if (!more.contains(e.relatedTarget as Node | null)) setOpen(false);
+    });
+    list.addEventListener('click', (e) => {
+      if ((e.target as Element).closest('a')) setOpen(false);
+    });
+    document.addEventListener('pointerdown', (e) => {
+      if (isOpen() && !more.contains(e.target as Node)) setOpen(false);
+    });
+
+    // Show up to maxTabs tabs; while the bar overflows, move the last visible tab into the dropdown.
+    const apply = (count: number) => {
+      barItems.forEach((li, i) => (li.hidden = i >= count));
+      listItems.forEach((li, i) => (li.hidden = i < count));
+    };
+    const overflowing = () => navInner.scrollWidth > navInner.clientWidth + 1;
+    const fit = () => {
+      if (getComputedStyle(desktop).display === 'none') {
+        setOpen(false); // hamburger mode: no chevron, no dropdown
+        return;
+      }
+      nav.removeAttribute('data-compact');
+      let count = maxTabs;
+      apply(count);
+      while (count > 0 && overflowing()) apply(--count);
+      nav.toggleAttribute('data-compact', overflowing());
+    };
+    new ResizeObserver(fit).observe(navInner);
+    document.fonts?.ready.then(fit);
   }
 </script>
