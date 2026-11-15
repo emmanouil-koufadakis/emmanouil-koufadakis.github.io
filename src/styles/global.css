@@ -128,6 +128,28 @@
   }
   .btn-ghost:hover { background: color-mix(in oklab, var(--color-ink) 16%, transparent); }
 
+  /* Shine: a band of light sweeps left to right on hover and keyboard focus.
+     The tint differs per variant and theme so it shows on light and dark fills. */
+  .btn { position: relative; overflow: hidden; }
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(110deg, transparent 25%, var(--btn-shine, rgb(255 255 255 / 0.3)) 50%, transparent 75%);
+    transform: translateX(-100%);
+  }
+  .btn:hover::after,
+  .btn:focus-visible::after { animation: btn-shine 0.8s var(--ease-out-soft); }
+  .btn-primary { --btn-shine: light-dark(rgb(255 255 255 / 0.4), color-mix(in oklab, var(--color-accent) 50%, transparent)); }
+  .btn-ghost { --btn-shine: light-dark(color-mix(in oklab, var(--color-accent) 30%, transparent), rgb(255 255 255 / 0.3)); }
+  @keyframes btn-shine {
+    to { transform: translateX(100%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .btn::after { display: none; }
+  }
+
   .chip {
     display: inline-flex;
     align-items: center;
