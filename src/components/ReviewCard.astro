@@ -1,4 +1,5 @@
 ---
+import Shine from './Shine.astro';
 import { profile, type Recommendation } from '../data/cv';
 
 interface Props {
@@ -27,6 +28,7 @@ const initials = rec.name
       </figcaption>
     </figure>
     <span class="more">Read on LinkedIn<span class="sr-only"> (opens in a new tab)</span> ↗</span>
+    <Shine />
   </a>
 </li>
 
@@ -47,6 +49,9 @@ const initials = rec.name
     border: 1px solid var(--color-line);
     color: var(--color-ink);
     text-decoration: none;
+    overflow: hidden;
+    /* Softer shine on this plain card: accent tint in light mode, faint white in dark. */
+    --shine-color: light-dark(color-mix(in oklab, var(--color-accent) 22%, transparent), rgb(255 255 255 / 0.1));
     transition: transform 0.3s var(--ease-out-soft), box-shadow 0.3s var(--ease-out-soft), border-color 0.3s;
   }
   .review:hover { transform: scale(1.02); border-color: color-mix(in oklab, var(--color-accent) 45%, var(--color-line)); }

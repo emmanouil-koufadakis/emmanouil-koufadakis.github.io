@@ -1,4 +1,5 @@
 ---
+import Shine from './Shine.astro';
 import { platformStyle, shortYears, type Role } from '../data/cv';
 
 interface Props {
@@ -28,6 +29,7 @@ const subline = role.clients.length ? role.clients.join(' · ') : role.summary;
       }
       <span class="years">{shortYears(role)}</span>
       <span class="company">{role.company}</span>
+      <Shine />
     </div>
     <div class="info">
       <h3>{role.title}</h3>

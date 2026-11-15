@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { platformStyle } from '../data/cv';
+import Shine from './Shine.astro';
 
 interface Props {
   entry: CollectionEntry<'work'>;
@@ -23,6 +24,7 @@ const d = entry.data;
           </span>
         )
       }
+      <Shine />
     </div>
     <p class="sub">{d.subtitle}</p>
   </a>

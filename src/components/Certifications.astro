@@ -1,16 +1,18 @@
 ---
+import Shine from './Shine.astro';
 import { certifications } from '../data/cv';
 ---
 <section id="certifications" class="certs" aria-labelledby="certs-title">
   <div class="wrap">
     <p class="eyebrow">Certifications</p>
     <h2 id="certs-title" class="section-title">Always learning</h2>
-    <ul class="grid">
+    <ul class="grid" data-shine-sequence>
       {
         certifications.map((c) => (
-          <li class="card">
+          <li class="card" data-shine-item>
             <div class="seal art" style={`--h: ${c.hue}`} aria-hidden="true">
               <span>{c.issuer}</span>
+              <Shine />
             </div>
             <div class="body">
               <h3>{c.name}</h3>
@@ -61,6 +63,7 @@ import { certifications } from '../data/cv';
   }
   .seal {
     position: relative;
+    overflow: hidden;
     aspect-ratio: 16 / 5;
     display: grid;
     place-items: center;
@@ -96,3 +99,8 @@ import { certifications } from '../data/cv';
   .cred:hover { text-decoration: underline; text-underline-offset: 3px; }
   .cred:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 </style>
+
+<script>
+  import { initShine } from '../scripts/shine';
+  initShine();
+</script>

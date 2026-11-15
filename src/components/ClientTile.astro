@@ -1,4 +1,5 @@
 ---
+import Shine from './Shine.astro';
 import { platformStyle, type Client } from '../data/cv';
 
 interface Props {
@@ -20,6 +21,7 @@ const label = client.platforms.map((p) => platformStyle[p].badge).join(' · ');
     <div class="face art" style={`--h: ${client.hue}`}>
       <span class="name">{client.name}</span>
       <span class="platforms"><span class="sr-only">Platforms: </span>{label}</span>
+      <Shine />
     </div>
   </a>
 </li>

@@ -140,14 +140,34 @@
     transform: translateX(-100%);
   }
   .btn:hover::after,
-  .btn:focus-visible::after { animation: btn-shine 0.8s var(--ease-out-soft); }
+  .btn:focus-visible::after { animation: shine-sweep 0.8s var(--ease-out-soft); }
   .btn-primary { --btn-shine: light-dark(rgb(255 255 255 / 0.4), color-mix(in oklab, var(--color-accent) 50%, transparent)); }
   .btn-ghost { --btn-shine: light-dark(color-mix(in oklab, var(--color-accent) 30%, transparent), rgb(255 255 255 / 0.3)); }
-  @keyframes btn-shine {
+
+  /* Cards with Shine.astro. scripts/shine.ts adds .is-shining to one card at a time,
+     and .is-spotlit to a hovered or keyboard-focused rail card (which loops). */
+  .shine {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(110deg, transparent 25%, var(--shine-color, rgb(255 255 255 / 0.32)) 50%, transparent 75%);
+    transform: translateX(-100%);
+  }
+  .is-shining .shine { animation: shine-sweep 0.9s var(--ease-out-soft); }
+  .is-spotlit .shine { animation: shine-loop 2.4s var(--ease-out-soft) infinite; }
+  /* Popup headers loop while open, starting once the open animation has settled. */
+  dialog[open] .shine { animation: shine-loop 2.4s var(--ease-out-soft) 0.3s infinite; }
+
+  @keyframes shine-sweep {
     to { transform: translateX(100%); }
   }
+  @keyframes shine-loop {
+    0% { transform: translateX(-100%); }
+    40%, 100% { transform: translateX(100%); }
+  }
   @media (prefers-reduced-motion: reduce) {
-    .btn::after { display: none; }
+    .btn::after, .shine { display: none; }
   }
 
   .chip {

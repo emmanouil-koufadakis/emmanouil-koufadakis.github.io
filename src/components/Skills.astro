@@ -8,7 +8,7 @@ import { skills } from '../data/cv';
     <div class="grid">
       {
         skills.map((group, i) => (
-          <section class:list={['group', { lead: i === 0 }]} aria-labelledby={`skills-${i}`}>
+          <section class="group" aria-labelledby={`skills-${i}`}>
             <h3 id={`skills-${i}`}>{group.name}</h3>
             <ul>
               {group.items.map((item) => (
@@ -34,14 +34,10 @@ import { skills } from '../data/cv';
   .group {
     padding: 1.4rem 1.4rem 1.5rem;
     border-radius: 16px;
-    background: var(--color-bg-raised);
-    border: 1px solid var(--color-line);
-  }
-  .group.lead {
     background:
       radial-gradient(120% 120% at 100% 0%, color-mix(in oklab, var(--color-accent) 22%, transparent), transparent 60%),
       var(--color-bg-raised);
-    border-color: color-mix(in oklab, var(--color-accent) 40%, var(--color-line));
+    border: 1px solid color-mix(in oklab, var(--color-accent) 40%, var(--color-line));
   }
   h3 { font-size: 1.15rem; font-weight: 700; }
   ul { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 1rem 0 0; padding: 0; list-style: none; }
