@@ -24,12 +24,12 @@ export const profile = {
   pitch:
     'I build Roku and OTT apps for broadcasters and streaming brands: fast to load, easy to maintain and ready for certification.',
   about: [
-    'I have spent 16+ years in software development, almost 7 of them building Roku apps in BrightScript and SceneGraph for BBC, Channel 5, Showtime, Crackle and Univision. Today I work as a contract Senior Roku Engineer at Deltatre.',
+    'I have spent 16+ years in software development, more than 6 of them building Roku apps in BrightScript and SceneGraph for BBC, Channel 5, Showtime, Crackle and Univision. Today I work as a contract Senior Roku Engineer at Deltatre.',
     'I am hands-on with the Roku Advertising Framework (RAF), EPG and parental controls, HLS/DASH playback, DRM and analytics, and I enjoy the detective work of tuning load time and memory across Roku devices. Before Roku, I led app teams on PlayStation, Apple TV, Windows, Xbox and the web for ESPN, CBS, NHL, WWE, Camelot and UEFA.',
   ],
   /** Short, CV-style summary used on the PDF. */
   cvSummary:
-    'Senior Roku engineer with 16+ years in software development, including almost 7 years building and deploying Roku apps in BrightScript and SceneGraph for BBC, Channel 5, Showtime, Crackle and Univision. Hands-on with the Roku Advertising Framework (RAF), EPG and parental controls, HLS/DASH playback, DRM and analytics, and with tuning load time and memory use across Roku devices. Built a custom Roku MVVM framework that cut page data-loading time by 30–40%. Currently a contract Senior Roku Engineer at Deltatre. Earlier led PlayStation, Apple TV, Windows, Xbox and web app teams for ESPN, CBS, NHL, WWE, Camelot and UEFA.',
+    'Senior Roku engineer with 16+ years in software development, including more than 6 years building and deploying Roku apps in BrightScript and SceneGraph for BBC, Channel 5, Showtime, Crackle and Univision. Hands-on with the Roku Advertising Framework (RAF), EPG and parental controls, HLS/DASH playback, DRM and analytics, and with tuning load time and memory use across Roku devices. Built a custom Roku MVVM framework that cut page data-loading time by 30–40%. Currently a contract Senior Roku Engineer at Deltatre. Earlier led PlayStation, Apple TV, Windows, Xbox and web app teams for ESPN, CBS, NHL, WWE, Camelot and UEFA.',
   location: 'Surbiton, Surrey, UK',
   email: 'manos.koufadakis@gmail.com',
   linkedin: 'https://www.linkedin.com/in/emmanouil-koufadakis',
@@ -39,7 +39,7 @@ export const profile = {
   workPreference: 'Contract or permanent · remote or London',
   stats: [
     { value: '16+', label: 'years in software development' },
-    { value: '~7', label: 'years building for Roku' },
+    { value: '6+', label: 'years building for Roku' },
     { value: '30–40%', label: 'page load time saved by my Roku MVVM framework' },
   ],
   cvFile: '/Emmanouil_Koufadakis_CV.pdf',
@@ -414,3 +414,43 @@ export function shortYears(role: Pick<Role, 'start' | 'end'>): string {
   const e = role.end.slice(0, 4);
   return s === e ? s : `${s}–${e.slice(2)}`;
 }
+
+/* ---------- graphs ---------- */
+
+/** Months since year 0, so dates can be compared and subtracted. */
+export const monthIndex = (ym: string) => {
+  const [y, m] = ym.split('-').map(Number);
+  return y * 12 + (m - 1);
+};
+
+/** The current month (at build time; each deploy refreshes it). */
+export const currentMonthIndex = () => {
+  const now = new Date();
+  return now.getFullYear() * 12 + now.getMonth();
+};
+
+/** Months in a role, counting both the first and last month. */
+export const roleMonths = (role: Pick<Role, 'start' | 'end'>) =>
+  (role.end ? monthIndex(role.end) : currentMonthIndex()) - monthIndex(role.start) + 1;
+
+/** Rounded down to the half year: 76 months → "6+ yrs", 43 → "3.5+ yrs", 11 → "11 months". */
+export function formatDuration(months: number): string {
+  if (months < 12) return `${months} months`;
+  const years = Math.floor(months / 6) / 2;
+  return `${years}${months % 6 ? '+' : ''} yrs`;
+}
+
+/** Platforms shown in the programme guide, newest first, with their row labels. */
+export const guidePlatforms: { platform: Role['platform']; label: string }[] = [
+  { platform: 'Roku', label: 'Roku' },
+  { platform: 'Apple TV', label: 'Apple TV' },
+  { platform: 'PlayStation', label: 'PlayStation' },
+  { platform: 'Windows', label: 'Windows · Xbox' },
+  { platform: 'Web', label: 'Web · Flash' },
+];
+
+/** Roku MVVM framework results, indexed so "before" = 100. `after` is a range. */
+export const mvvmImpact: { label: string; after: [number, number]; change: string }[] = [
+  { label: 'Page data-loading time', after: [60, 70], change: '30–40% less' },
+  { label: 'Code typing time', after: [50, 50], change: '50% less' },
+];

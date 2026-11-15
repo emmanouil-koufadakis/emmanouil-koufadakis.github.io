@@ -1,0 +1,231 @@
+---
+/**
+ * "Programme guide": the career drawn like a TV listings grid. Each platform is
+ * a channel row, each role a programme block on a 2007 → now time axis.
+ * Blocks open the same role dialogs as the Experience rail. On narrow screens
+ * the grid scrolls sideways with the channel column pinned, like a real EPG.
+ */
+import { currentMonthIndex, experience, formatPeriod, guidePlatforms, monthIndex, platformStyle } from '../data/cv';
+import PlatformYears from './PlatformYears.astro';
+import ImpactChart from './ImpactChart.astro';
+
+const firstYear = 2007;
+const nowM = currentMonthIndex();
+const nowYear = Math.floor(nowM / 12);
+const startM = firstYear * 12;
+const endM = nowM + 10; // a little past today, so the "Now" label has room
+const span = endM - startM;
+const pct = (m: number) => `${(((m - startM) / span) * 100).toFixed(3)}%`;
+// 3px narrower so back-to-back roles on one channel show a small gap.
+const width = (from: number, to: number) => `calc(${(((to - from) / span) * 100).toFixed(3)}% - 3px)`;
+
+const ticks = [];
+for (let y = firstYear; y <= nowYear; y += 2) ticks.push(y);
+
+const rows = guidePlatforms.map(({ platform, label }) => ({
+  platform,
+  label,
+  hue: platformStyle[platform].hue,
+  roles: experience
+    .filter((r) => r.platform === platform)
+    .map((r) => {
+      const from = monthIndex(r.start);
+      const to = (r.end ? monthIndex(r.end) : nowM) + 1;
+      return {
+        role: r,
+        left: pct(from),
+        width: width(from, to),
+        level: /^(Lead|Senior|Junior)/.exec(r.title)?.[1] ?? 'Developer',
+        sub: r.clients.slice(0, 2).join(', ') || r.company,
+      };
+    }),
+}));
+---
+<section id="guide" class="guide-sec" aria-labelledby="guide-title">
+  <div class="wrap">
+    <p class="eyebrow">Programme guide</p>
+    <h2 id="guide-title" class="section-title">Career at a glance</h2>
+    <p class="intro">Each platform is a channel and each role a show. Select one for the details.</p>
+
+    <div class="panel">
+      <div class="scroller" data-guide-scroller>
+        <div class="guide" style={`--years: ${span / 12}; --now: ${pct(nowM + 0.5)}`}>
+          <div class="times" aria-hidden="true">
+            <span class="corner"></span>
+            <div class="ticks">
+              {ticks.map((y) => <span style={`left: ${pct(y * 12)}`}>{y}</span>)}
+            </div>
+          </div>
+
+          {
+            rows.map((row) => (
+              <div class="row" role="group" aria-label={row.label}>
+                <div class="chan">
+                  <span class="dot" style={`--h: ${row.hue}`} />
+                  <span class="name">{row.label}</span>
+                </div>
+                <div class="track">
+                  {row.roles.map((b) => (
+                    <a
+                      class="prog art"
+                      href={`#credit-${b.role.id}`}
+                      data-dialog-open={`dlg-${b.role.id}`}
+                      aria-haspopup="dialog"
+                      aria-label={`${b.role.title}, ${b.role.company}, ${formatPeriod(b.role)}`}
+                      title={`${b.role.title} · ${formatPeriod(b.role)}`}
+                      style={`--h: ${row.hue}; left: ${b.left}; width: ${b.width}`}
+                    >
+                      <span class="lvl">{b.level}</span>
+                      <span class="sub">{b.sub}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ))
+          }
+
+          <div class="now-layer" aria-hidden="true"><div class="now-line"><span>Now</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="charts">
+      <PlatformYears />
+      <ImpactChart link />
+    </div>
+  </div>
+</section>
+
+<style>
+  .guide-sec { margin-top: clamp(4rem, 8vw, 6rem); scroll-margin-top: calc(var(--nav-h) + 16px); }
+  .section-title { margin-top: 0.5rem; }
+  .intro { margin-top: 0.6rem; color: var(--color-ink-soft); }
+
+  .panel {
+    margin-top: 1.75rem;
+    border-radius: 16px;
+    background: var(--color-bg-raised);
+    border: 1px solid var(--color-line);
+    overflow: hidden;
+  }
+  .scroller { overflow-x: auto; overscroll-behavior-x: contain; }
+  .guide {
+    --chan: 9.5rem;
+    position: relative;
+    min-width: 760px;
+    padding-bottom: 0.5rem;
+  }
+
+  /* ---------- time bar ---------- */
+  .times { display: grid; grid-template-columns: var(--chan) minmax(0, 1fr); height: 2.5rem; border-bottom: 1px solid var(--color-line); }
+  .corner { position: sticky; left: 0; z-index: 3; background: var(--color-bg-raised); }
+  .ticks { position: relative; }
+  .ticks span {
+    position: absolute;
+    top: 50%;
+    translate: 0.35rem -50%;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-ink-faint);
+  }
+
+  /* ---------- channel rows ---------- */
+  .row { display: grid; grid-template-columns: var(--chan) minmax(0, 1fr); }
+  .row + .row { border-top: 1px solid color-mix(in oklab, var(--color-line) 60%, transparent); }
+  .chan {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0 0.9rem;
+    background: var(--color-bg-raised);
+    border-right: 1px solid var(--color-line);
+  }
+  .dot { flex: none; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: oklch(0.62 0.17 var(--h)); }
+  .name { font-size: 0.875rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .track {
+    position: relative;
+    height: 3.75rem;
+    /* One faint line per year. */
+    background: linear-gradient(to right, color-mix(in oklab, var(--color-line) 70%, transparent) 1px, transparent 1px) 0 0 / calc(100% / var(--years)) 100%;
+  }
+
+  /* ---------- programme blocks ---------- */
+  .prog {
+    position: absolute;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    z-index: 1;
+    container-type: inline-size;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.1rem;
+    min-width: 6px;
+    padding: 0 0.55rem;
+    border-radius: 8px;
+    overflow: hidden;
+    text-decoration: none;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+    transition: transform 0.25s var(--ease-out-soft), box-shadow 0.25s var(--ease-out-soft);
+  }
+  .prog:hover { transform: translateY(-2px); z-index: 2; }
+  .prog:focus-visible { outline: none; z-index: 2; box-shadow: var(--focus-ring); }
+  .lvl, .sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lvl { font-size: 0.8125rem; font-weight: 700; line-height: 1.1; }
+  .sub { font-size: 0.6875rem; opacity: 0.85; }
+  @container (max-width: 96px) { .sub { display: none; } }
+  @container (max-width: 46px) { .lvl { display: none; } }
+
+  /* ---------- "now" marker, like an EPG's current-time line ---------- */
+  /* The layer covers only the timeline column, so --now (a % of the track) lines up. */
+  .now-layer { position: absolute; inset: 0 0 0 var(--chan); z-index: 2; pointer-events: none; }
+  .now-line {
+    position: absolute;
+    top: 0.45rem;
+    bottom: 0;
+    left: var(--now);
+    width: 2px;
+    translate: -1px 0;
+    background: var(--color-accent);
+  }
+  .now-line span {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    translate: -50% 0;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    background: var(--color-accent);
+    color: var(--color-accent-ink);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 640px) {
+    .guide { --chan: 7.25rem; min-width: 720px; }
+    .chan { padding: 0 0.6rem; gap: 0.45rem; }
+    .name { font-size: 0.8125rem; white-space: normal; line-height: 1.2; }
+  }
+
+  /* ---------- companion charts ---------- */
+  .charts {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+    gap: 1rem;
+  }
+</style>
+
+<script>
+  // On narrow screens the guide scrolls sideways: start at the most recent years, like an EPG opening on "now".
+  for (const el of document.querySelectorAll<HTMLElement>('[data-guide-scroller]')) {
+    el.scrollLeft = el.scrollWidth;
+  }
+</script>

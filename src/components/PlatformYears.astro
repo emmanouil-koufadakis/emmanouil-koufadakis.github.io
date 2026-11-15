@@ -1,0 +1,61 @@
+---
+/** Time on each platform, worked out from the role dates in cv.ts. */
+import { experience, formatDuration, guidePlatforms, platformStyle, roleMonths } from '../data/cv';
+
+const rows = guidePlatforms
+  .map(({ platform, label }) => ({
+    label,
+    hue: platformStyle[platform].hue,
+    months: experience.filter((r) => r.platform === platform).reduce((sum, r) => sum + roleMonths(r), 0),
+  }))
+  .sort((a, b) => b.months - a.months);
+const max = Math.max(...rows.map((r) => r.months));
+---
+<figure class="card">
+  <figcaption>
+    <h3>Time on each platform</h3>
+    <span class="note">From role dates</span>
+  </figcaption>
+  <dl class="bars">
+    {
+      rows.map((r) => (
+        <div class="bar-row" style={`--h: ${r.hue}; --w: ${((r.months / max) * 100).toFixed(1)}%`}>
+          <dt>{r.label}</dt>
+          <dd>
+            <span class="track"><span class="fill" /></span>
+            <span class="value">{formatDuration(r.months)}</span>
+          </dd>
+        </div>
+      ))
+    }
+  </dl>
+</figure>
+
+<style>
+  .card {
+    margin: 0;
+    padding: 1.4rem 1.4rem 1.5rem;
+    border-radius: 16px;
+    background: var(--color-bg-raised);
+    border: 1px solid var(--color-line);
+  }
+  figcaption { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.2rem 1rem; }
+  h3 { font-size: 1.15rem; font-weight: 700; }
+  .note { font-size: 0.8125rem; color: var(--color-ink-faint); }
+  .bars { display: grid; gap: 0.85rem; margin: 1.25rem 0 0; }
+  .bar-row { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); align-items: center; gap: 0.75rem; }
+  dt { font-size: 0.9375rem; color: var(--color-ink-soft); }
+  dd { display: flex; align-items: center; gap: 0.6rem; margin: 0; }
+  .track { flex: 1; height: 0.9rem; border-radius: 4px; background: color-mix(in oklab, var(--color-ink) 7%, transparent); }
+  .fill {
+    display: block;
+    width: var(--w);
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, oklch(0.5 0.18 var(--h)), oklch(0.68 0.16 var(--h)));
+  }
+  .value { flex: none; min-width: 4.6rem; font-family: var(--font-mono); font-size: 0.8125rem; font-weight: 600; }
+  @media (max-width: 420px) {
+    .bar-row { grid-template-columns: 1fr; gap: 0.3rem; }
+  }
+</style>

@@ -1,0 +1,102 @@
+---
+/**
+ * Roku MVVM framework results as before/after bars, indexed so "before" = 100.
+ * A range (e.g. 30–40%) shows as a solid bar plus a lighter band for the spread.
+ */
+import { mvvmImpact } from '../data/cv';
+
+interface Props {
+  /** Show a link to the case study (home page). */
+  link?: boolean;
+}
+const { link = false } = Astro.props;
+
+const metrics = mvvmImpact.map((m) => {
+  const [lo, hi] = m.after;
+  return { ...m, lo, hi, solid: ((lo / hi) * 100).toFixed(1), afterText: lo === hi ? `${lo}` : `${lo}–${hi}` };
+});
+---
+<figure class="impact">
+  <figcaption>
+    <h3>Roku MVVM framework impact</h3>
+    <span class="note">Before = 100</span>
+  </figcaption>
+  <div class="metrics">
+    {
+      metrics.map((m) => (
+        <div class="metric">
+          <div class="head">
+            <span class="label">{m.label}</span>
+            <span class="change">{m.change}</span>
+          </div>
+          <div class="bar before">
+            <span class="fill" style="--w: 100%" />
+            <span class="tag">Before · 100</span>
+          </div>
+          <div class="bar after">
+            <span class="fill" style={`--w: ${m.hi}%; --solid: ${m.solid}%`} />
+            <span class="tag">After · {m.afterText}</span>
+          </div>
+        </div>
+      ))
+    }
+  </div>
+  {
+    link && (
+      <a class="more" href="/work/roku-mvvm-framework/">
+        Read the case study <span aria-hidden="true">→</span>
+      </a>
+    )
+  }
+</figure>
+
+<style>
+  .impact {
+    margin: 0;
+    padding: 1.4rem 1.4rem 1.5rem;
+    border-radius: 16px;
+    background:
+      radial-gradient(120% 120% at 100% 0%, color-mix(in oklab, var(--color-accent) 18%, transparent), transparent 60%),
+      var(--color-bg-raised);
+    border: 1px solid color-mix(in oklab, var(--color-accent) 40%, var(--color-line));
+  }
+  figcaption { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.2rem 1rem; }
+  h3 { margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--color-ink); }
+  .note { font-size: 0.8125rem; color: var(--color-ink-faint); }
+  .metrics { display: grid; gap: 1.2rem; margin-top: 1.25rem; }
+  .metric { display: grid; gap: 0.4rem; }
+  .head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+  .label { font-size: 0.9375rem; color: var(--color-ink-soft); }
+  .change { font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; color: var(--color-ink); white-space: nowrap; }
+  .bar { position: relative; height: 1.5rem; }
+  .fill { display: block; width: var(--w); height: 100%; border-radius: 0 6px 6px 0; }
+  .before .fill { background: color-mix(in oklab, var(--color-ink) 14%, transparent); }
+  .after .fill {
+    background: linear-gradient(
+      90deg,
+      var(--color-accent) var(--solid),
+      color-mix(in oklab, var(--color-accent) 45%, transparent) var(--solid)
+    );
+  }
+  .tag {
+    position: absolute;
+    left: 0.55rem;
+    top: 50%;
+    translate: 0 -50%;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+  .after .tag { color: var(--color-accent-ink); }
+  .more {
+    display: inline-block;
+    margin-top: 1.2rem;
+    color: var(--color-accent);
+    font-weight: 650;
+    text-decoration: none;
+    border-radius: 4px;
+  }
+  .more:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .more:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+</style>

@@ -12,6 +12,8 @@ hue: 300
 order: 1
 ---
 
+import ImpactChart from '../../components/ImpactChart.astro';
+
 ## The problem
 
 Every Roku app we built needed the same plumbing: moving between pages, keeping track of which element has focus when the user presses the remote, and loading data from APIs without freezing the screen. Each project solved it slightly differently, which made apps slower to build and harder to hand over between developers.
@@ -25,6 +27,8 @@ I designed and built a reusable **MVVM framework** for Roku SceneGraph. It separ
 - **API data loading:** a standard pattern for fetching and preparing data off the main thread.
 
 ## The outcome
+
+<ImpactChart />
 
 - Page data-loading time dropped by **30–40%**.
 - Code typing time fell by **50%**: new apps and screens were faster to build because the hard parts were already solved.
