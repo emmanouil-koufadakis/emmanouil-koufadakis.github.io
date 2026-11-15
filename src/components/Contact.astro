@@ -1,0 +1,223 @@
+---
+import { PUBLIC_WEB3FORMS_KEY } from 'astro:env/client';
+import { profile } from '../data/cv';
+
+const key = PUBLIC_WEB3FORMS_KEY?.trim() || '';
+// Without a Web3Forms key the form falls back to opening the visitor's email app.
+const action = key ? 'https://api.web3forms.com/submit' : `mailto:${profile.email}`;
+---
+<section id="contact" class="contact" aria-labelledby="contact-title">
+  <div class="wrap">
+  <div class="grid">
+    <div class="intro">
+      <p class="eyebrow">Contact</p>
+      <h2 id="contact-title">Got a Roku or OTT project?<br />Let's talk.</h2>
+      <p class="lead">
+        I'm open to contract and permanent roles, remote or in London. Send a message here, or reach me directly.
+      </p>
+      <ul class="direct">
+        <li>
+          <a href={`mailto:${profile.email}`}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5" /><path d="m4 7 8 6 8-6" /></svg>
+            {profile.email}
+          </a>
+        </li>
+        <li>
+          <a href={profile.linkedin} target="_blank" rel="me noopener">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" /><path d="M8 10.5V16M8 7.8v.2M12 16v-3.2c0-1.4 1-2.3 2.2-2.3s2 .9 2 2.3V16M12 10.5V16" /></svg>
+            {profile.linkedinLabel}<span class="sr-only"> (opens in a new tab)</span>
+          </a>
+        </li>
+        <li>
+          <span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21Z" /><circle cx="12" cy="10" r="2.3" /></svg>
+            {profile.location}
+          </span>
+        </li>
+      </ul>
+    </div>
+
+    <form
+      class="form"
+      method="post"
+      action={action}
+      enctype={key ? undefined : 'text/plain'}
+      data-contact-form
+      data-key={key}
+      data-email={profile.email}
+      novalidate
+    >
+      {key && <input type="hidden" name="access_key" value={key} />}
+      <input type="hidden" name="subject" value="New message from your CV website" />
+      <input type="hidden" name="from_name" value="CV website" />
+      <!-- Honeypot: real visitors never see or fill this. -->
+      <input type="checkbox" name="botcheck" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+      <div class="field">
+        <label for="cf-name">Your name</label>
+        <input id="cf-name" name="name" type="text" autocomplete="name" required maxlength="120" />
+      </div>
+      <div class="field">
+        <label for="cf-email">Your email</label>
+        <input id="cf-email" name="email" type="email" autocomplete="email" required maxlength="200" />
+      </div>
+      <div class="field">
+        <label for="cf-message">Message</label>
+        <textarea id="cf-message" name="message" rows="6" required maxlength="5000"></textarea>
+      </div>
+
+      <div class="row">
+        <button class="btn btn-primary submit" type="submit">
+          <span class="label">Send message</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-5-5 5 5-5 5" /></svg>
+        </button>
+        <p class="status" role="status" aria-live="polite" data-status></p>
+      </div>
+    </form>
+  </div>
+  </div>
+</section>
+
+<style>
+  .contact { margin-top: clamp(4rem, 8vw, 6rem); }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: 2.5rem clamp(2rem, 5vw, 5rem);
+    padding: clamp(1.5rem, 4vw, 3.5rem);
+    border-radius: 24px;
+    background:
+      radial-gradient(80% 120% at 0% 0%, color-mix(in oklab, var(--color-accent) 18%, transparent), transparent 60%),
+      var(--color-bg-raised);
+    border: 1px solid var(--color-line);
+  }
+  h2 {
+    margin-top: 0.6rem;
+    font-size: clamp(1.9rem, 1.3rem + 2.4vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+  .lead { margin-top: 1rem; font-size: 1.0625rem; color: var(--color-ink-soft); max-width: 30rem; }
+  .direct { margin: 1.75rem 0 0; padding: 0; list-style: none; display: grid; gap: 0.75rem; }
+  .direct a, .direct span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    color: var(--color-ink);
+    font-weight: 550;
+    text-decoration: none;
+    border-radius: 6px;
+    word-break: break-word;
+  }
+  .direct a:hover { color: var(--color-accent); }
+  .direct svg {
+    width: 22px;
+    height: 22px;
+    flex: none;
+    fill: none;
+    stroke: var(--color-accent);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .form { display: grid; gap: 1rem; align-content: start; }
+  .field { display: grid; gap: 0.4rem; }
+  label { font-weight: 600; font-size: 0.9375rem; }
+  input, textarea {
+    width: 100%;
+    padding: 0.8rem 0.95rem;
+    border-radius: 10px;
+    border: 1px solid var(--color-line);
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  textarea { resize: vertical; min-height: 9rem; }
+  input:focus-visible, textarea:focus-visible {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-accent) 35%, transparent);
+  }
+  input[aria-invalid='true'], textarea[aria-invalid='true'] { border-color: oklch(0.62 0.2 25); }
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.25rem; margin-top: 0.25rem; }
+  .submit[disabled] { opacity: 0.7; cursor: progress; }
+  .status { font-size: 0.9375rem; color: var(--color-ink-soft); }
+  .status[data-tone='ok'] { color: oklch(0.62 0.14 155); }
+  .status[data-tone='error'] { color: oklch(0.62 0.2 25); }
+
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: 1fr; border-radius: 18px; }
+  }
+</style>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('[data-contact-form]');
+
+  if (form) {
+    const status = form.querySelector<HTMLElement>('[data-status]')!;
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const label = button.querySelector<HTMLElement>('.label')!;
+    const key = form.dataset.key;
+    const email = form.dataset.email!;
+
+    const say = (text: string, tone?: 'ok' | 'error') => {
+      status.textContent = text;
+      if (tone) status.dataset.tone = tone;
+      else delete status.dataset.tone;
+    };
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      // Native validation, announced through the status line.
+      const fields = Array.from(form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input[required], textarea[required]'));
+      let firstInvalid: HTMLElement | undefined;
+      for (const f of fields) {
+        const ok = f.checkValidity() && f.value.trim() !== '';
+        f.setAttribute('aria-invalid', String(!ok));
+        if (!ok && !firstInvalid) firstInvalid = f;
+      }
+      if (firstInvalid) {
+        say('Please fill in your name, a valid email and a message.', 'error');
+        firstInvalid.focus();
+        return;
+      }
+
+      const data = new FormData(form);
+      if (data.get('botcheck')) return;
+
+      if (!key) {
+        // No form service configured: hand the message to the visitor's email app.
+        const subject = encodeURIComponent(`Message from ${data.get('name')}`);
+        const body = encodeURIComponent(`${data.get('message')}\n\n${data.get('name')} · ${data.get('email')}`);
+        window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+        say('Opening your email app…');
+        return;
+      }
+
+      button.disabled = true;
+      label.textContent = 'Sending…';
+      say('');
+      try {
+        const res = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(Object.fromEntries(data)),
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || json.success === false) throw new Error(json.message || res.statusText);
+        form.reset();
+        fields.forEach((f) => f.removeAttribute('aria-invalid'));
+        say("Thanks! Your message is on its way, and I'll get back to you soon.", 'ok');
+      } catch {
+        say(`Sorry, that didn't send. Please email me at ${email}.`, 'error');
+      } finally {
+        button.disabled = false;
+        label.textContent = 'Send message';
+      }
+    });
+  }
+</script>

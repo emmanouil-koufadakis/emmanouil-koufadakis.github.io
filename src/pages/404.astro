@@ -1,0 +1,29 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Page not found" noindex>
+  <section class="nf">
+    <div class="wrap">
+      <p class="eyebrow">Error 404</p>
+      <h1>This title isn't available.</h1>
+      <p class="msg">It may have been removed, or the link might be wrong. Plenty more to watch on the home screen.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="/">Back to home</a>
+        <a class="btn btn-ghost" href="/#experience">Browse experience</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    min-height: 80vh;
+    display: grid;
+    align-items: center;
+    padding-top: var(--nav-h);
+    background: radial-gradient(60% 60% at 70% 40%, color-mix(in oklab, var(--color-accent) 18%, transparent), transparent 70%);
+  }
+  h1 { margin-top: 0.75rem; font-size: clamp(2.4rem, 1.6rem + 4vw, 4.5rem); font-weight: 800; letter-spacing: -0.03em; max-width: 14ch; }
+  .msg { margin-top: 1rem; font-size: 1.15rem; color: var(--color-ink-soft); max-width: 34rem; }
+  .cta { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 2rem; }
+</style>

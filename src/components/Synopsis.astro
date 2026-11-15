@@ -1,0 +1,115 @@
+---
+import { certifications, education, languages, profile, volunteering } from '../data/cv';
+---
+<section id="about" class="synopsis" aria-labelledby="about-title">
+  <div class="wrap grid">
+    <div class="copy">
+      <p class="eyebrow">Synopsis</p>
+      <h2 id="about-title" class="section-title">Ten years of apps for the big screen</h2>
+      {profile.about.map((p) => <p class="para">{p}</p>)}
+    </div>
+    <aside class="facts" aria-label="Education and languages">
+      <div class="block">
+        <h3 class="eyebrow">Education</h3>
+        <ul>
+          {
+            education.map((e) => (
+              <li>
+                <strong>{e.degree}</strong>
+                <span>
+                  {e.school} · {e.year}
+                  {e.detail && ` · ${e.detail}`}
+                </span>
+                {e.dissertation && <span class="diss">Dissertation: {e.dissertation}</span>}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <div class="block">
+        <h3 class="eyebrow">Certifications</h3>
+        <ul>
+          {
+            certifications.map((c) => (
+              <li>
+                {c.url ? (
+                  <a href={c.url} target="_blank" rel="noopener">
+                    <strong>{c.name}</strong>
+                    <span class="sr-only"> (credential, opens in a new tab)</span> ↗
+                  </a>
+                ) : (
+                  <strong>{c.name}</strong>
+                )}
+                <span>
+                  {c.issuer} · {c.date}
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <div class="block">
+        <h3 class="eyebrow">Languages</h3>
+        <ul class="langs">
+          {
+            languages.map((l) => (
+              <li>
+                <strong>{l.name}</strong>
+                <span>{l.level}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <div class="block">
+        <h3 class="eyebrow">Volunteering</h3>
+        <ul>
+          {
+            volunteering.map((v) => (
+              <li>
+                <strong>{v.role}</strong>
+                <span>
+                  {v.org} · {v.year}
+                </span>
+                <span class="diss">{v.detail}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<style>
+  .synopsis { margin-top: clamp(4rem, 8vw, 6rem); }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 2.5rem clamp(2rem, 5vw, 5rem);
+    align-items: start;
+  }
+  .section-title { margin-top: 0.5rem; margin-bottom: 1.25rem; }
+  .para { font-size: 1.125rem; color: var(--color-ink-soft); max-width: 44rem; }
+  .para + .para { margin-top: 1rem; }
+  .facts {
+    display: grid;
+    gap: 1.75rem;
+    padding: 1.5rem;
+    border-radius: 16px;
+    background: var(--color-bg-raised);
+    border: 1px solid var(--color-line);
+  }
+  .block ul { margin: 0.85rem 0 0; padding: 0; list-style: none; display: grid; gap: 0.9rem; }
+  .block li { display: flex; flex-direction: column; gap: 0.1rem; }
+  .block strong { font-weight: 650; }
+  .block span { color: var(--color-ink-faint); font-size: 0.9375rem; }
+  .langs { grid-template-columns: 1fr 1fr; }
+  .block .diss { font-size: 0.875rem; font-style: italic; }
+  .block a { color: var(--color-ink); text-decoration: none; border-radius: 4px; }
+  .block a:hover strong { color: var(--color-accent); }
+  .block a:focus-visible { outline-offset: 2px; }
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>

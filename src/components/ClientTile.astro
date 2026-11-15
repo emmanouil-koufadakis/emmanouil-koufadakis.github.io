@@ -1,0 +1,68 @@
+---
+import { platformStyle, type Client } from '../data/cv';
+
+interface Props {
+  client: Client;
+  /** Role whose details dialog this tile opens. */
+  roleId?: string;
+}
+const { client, roleId } = Astro.props;
+const label = client.platforms.map((p) => platformStyle[p].badge).join(' · ');
+---
+<li>
+  <a
+    href={roleId ? `#credit-${roleId}` : '#credits'}
+    class="tile"
+    data-rail-item
+    data-dialog-open={roleId ? `dlg-${roleId}` : undefined}
+    aria-haspopup={roleId ? 'dialog' : undefined}
+  >
+    <div class="face art" style={`--h: ${client.hue}`}>
+      <span class="name">{client.name}</span>
+      <span class="platforms"><span class="sr-only">Platforms: </span>{label}</span>
+    </div>
+  </a>
+</li>
+
+<style>
+  .tile { display: block; width: clamp(180px, 17vw, 240px); text-decoration: none; border-radius: 14px; }
+  .tile:focus-visible { outline: none; }
+  .face {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    transition: transform 0.3s var(--ease-out-soft), box-shadow 0.3s var(--ease-out-soft);
+  }
+  .face::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgb(0 0 0 / 0.18);
+  }
+  .name {
+    position: relative;
+    padding-inline: 0.75rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.4rem, 1.1rem + 0.9vw, 1.9rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    text-align: center;
+    line-height: 1;
+    text-shadow: 0 2px 18px rgb(0 0 0 / 0.35);
+  }
+  .platforms {
+    position: absolute;
+    left: 0.7rem;
+    bottom: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    opacity: 0.9;
+  }
+  .tile:hover .face { transform: scale(1.03); }
+  .tile:focus-visible .face { transform: scale(1.06); box-shadow: var(--focus-ring), var(--focus-glow); }
+</style>

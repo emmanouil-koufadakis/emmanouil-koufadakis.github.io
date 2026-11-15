@@ -1,0 +1,106 @@
+---
+import '../styles/global.css';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import { profile } from '../data/cv';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Path to the social preview image, relative to the site root. */
+  image?: string;
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description = `${profile.name}, ${profile.headline}. ${profile.pitch}`,
+  image = '/og.png',
+  noindex = false,
+} = Astro.props;
+
+const fullTitle = title ? `${title} · ${profile.name}` : `${profile.name} · ${profile.headline}`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL(image, Astro.site);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: profile.name,
+  alternateName: profile.knownAs,
+  jobTitle: profile.headline,
+  description: profile.cvSummary,
+  url: new URL('/', Astro.site).href,
+  email: `mailto:${profile.email}`,
+  address: { '@type': 'PostalAddress', addressLocality: 'Surbiton', addressRegion: 'Surrey', addressCountry: 'GB' },
+  sameAs: [profile.linkedin],
+  alumniOf: [
+    { '@type': 'CollegeOrUniversity', name: 'Kingston University' },
+    { '@type': 'CollegeOrUniversity', name: 'University of Piraeus' },
+  ],
+  knowsAbout: ['Roku', 'BrightScript', 'SceneGraph', 'OTT', 'HLS', 'DASH', 'DRM', 'Apple TV', 'PlayStation', 'Xbox', 'C#', 'JavaScript'],
+};
+---
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta name="theme-color" content="#16131d" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f8f7f3" media="(prefers-color-scheme: light)" />
+
+    <meta property="og:type" content="profile" />
+    <meta property="og:site_name" content={profile.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${profile.name}, ${profile.headline}`} />
+    <meta property="profile:first_name" content="Emmanouil" />
+    <meta property="profile:last_name" content="Koufadakis" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script is:inline>
+      try {
+        var t = localStorage.getItem('theme');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </head>
+  <body>
+    <a href="#main" class="skip-link">Skip to content</a>
+    <Nav />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>
+
+<style>
+  .skip-link {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 100;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    background: var(--color-ink);
+    color: var(--color-bg);
+    font-weight: 650;
+    text-decoration: none;
+    transform: translateY(-150%);
+    transition: transform 0.2s;
+  }
+  .skip-link:focus { transform: none; }
+  main:focus { outline: none; }
+</style>

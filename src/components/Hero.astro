@@ -1,0 +1,188 @@
+---
+import HeroScene from './HeroScene.astro';
+import { profile } from '../data/cv';
+
+const platforms = ['Roku', 'Apple TV', 'PlayStation', 'Xbox', 'Windows', 'Web'];
+---
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero-art" aria-hidden="true">
+    <HeroScene />
+  </div>
+
+  <div class="wrap hero-inner">
+    <div class="hero-copy">
+      <p class="eyebrow kicker">
+        <span class="featured">Featured</span>
+        <span>{profile.headline}</span>
+      </p>
+
+      <h1 id="hero-title">
+        <span>Emmanouil</span>
+        <span>Koufadakis</span>
+      </h1>
+
+      <p class="meta-row">
+        <span class="hd">MSc</span>
+        <span>2007 – Now</span>
+        <span class="platforms">{platforms.join(' · ')}</span>
+      </p>
+
+      <p class="pitch">{profile.pitch}</p>
+
+      <div class="cta">
+        <a class="btn btn-primary" href="#experience">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M7 4.8v14.4a.8.8 0 0 0 1.2.7l11.3-7.2a.8.8 0 0 0 0-1.4L8.2 4.1A.8.8 0 0 0 7 4.8Z" /></svg>
+          Browse experience
+        </a>
+        <a class="btn btn-ghost" href={profile.cvFile} download>
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0 4.5-4.5M12 15l-4.5-4.5M5 19.5h14" /></svg>
+          Download CV
+        </a>
+        <a class="btn btn-ghost" href="#contact">Get in touch</a>
+      </div>
+
+      <ul class="status" aria-label="Availability">
+        <li class="chip"><span class="live-dot" aria-hidden="true"></span>{profile.availability}</li>
+        <li class="chip">{profile.workPreference}</li>
+        <li class="chip">{profile.location}</li>
+      </ul>
+    </div>
+
+    <dl class="stats">
+      {
+        profile.stats.map((s) => (
+          <div class="stat">
+            <dt>{s.label}</dt>
+            <dd>{s.value}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    min-height: min(100svh, 980px);
+    display: flex;
+    align-items: flex-end;
+    padding-top: calc(var(--nav-h) + 2rem);
+    padding-bottom: clamp(2.5rem, 6vh, 4.5rem);
+    overflow: hidden;
+  }
+
+  /* ---------- artwork (right side on desktop, top on mobile) ---------- */
+  .hero-art {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: min(62%, 1100px);
+    z-index: -1;
+    -webkit-mask-image: linear-gradient(to left, #000 45%, transparent 98%), linear-gradient(to top, transparent 0%, #000 30%);
+    mask-image: linear-gradient(to left, #000 45%, transparent 98%), linear-gradient(to top, transparent 0%, #000 30%);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+
+  /* ---------- copy ---------- */
+  .hero-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 2rem 3rem;
+  }
+  .hero-copy { max-width: 46rem; }
+
+  .kicker { display: flex; align-items: center; gap: 0.75rem; color: var(--color-ink-soft); }
+  .featured {
+    padding: 0.25rem 0.55rem;
+    border-radius: 6px;
+    background: var(--color-accent);
+    color: var(--color-accent-ink);
+    letter-spacing: 0.12em;
+  }
+
+  h1 {
+    margin: 1rem 0 0.9rem;
+    font-size: clamp(3rem, 1.6rem + 6vw, 6.25rem);
+    font-weight: 800;
+    line-height: 0.92;
+    letter-spacing: -0.035em;
+    font-variation-settings: 'wdth' 85;
+  }
+  h1 span { display: block; }
+
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--color-ink-soft);
+  }
+  .platforms { padding-left: 0.6rem; border-left: 1px solid color-mix(in oklab, var(--color-ink) 25%, transparent); }
+  .hd {
+    padding: 0.05rem 0.35rem;
+    border: 1px solid color-mix(in oklab, var(--color-ink) 40%, transparent);
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+
+  .pitch {
+    margin-top: 1.25rem;
+    font-size: clamp(1.1rem, 1rem + 0.45vw, 1.35rem);
+    line-height: 1.5;
+    color: var(--color-ink-soft);
+    max-width: 38rem;
+  }
+
+  .cta { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 2rem; }
+
+  .status { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.5rem; padding: 0; list-style: none; }
+
+  .stats {
+    display: grid;
+    gap: 1.25rem;
+    margin: 0;
+    padding: 1.25rem 1.5rem;
+    border-radius: 16px;
+    background: color-mix(in oklab, var(--color-bg) 55%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-ink) 10%, transparent);
+    backdrop-filter: blur(12px);
+    min-width: 15rem;
+  }
+  .stat { display: flex; flex-direction: column-reverse; gap: 0.1rem; }
+  .stat dd {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 2.4rem;
+    font-weight: 750;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .stat dt { font-size: 0.875rem; color: var(--color-ink-faint); max-width: 13rem; }
+
+  @media (max-width: 900px) {
+    .hero { min-height: auto; align-items: stretch; padding-top: 0; }
+    .hero-art {
+      position: relative;
+      inset: auto;
+      width: 100%;
+      height: 52vh;
+      max-height: 460px;
+      -webkit-mask-image: linear-gradient(to top, transparent 0%, #000 24%);
+      mask-image: linear-gradient(to top, transparent 0%, #000 24%);
+    }
+    .hero { flex-direction: column; }
+    .hero-inner { grid-template-columns: 1fr; margin-top: -5.5rem; }
+    .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); min-width: 0; padding: 1rem; }
+    .stat dd { font-size: 1.75rem; }
+    .stat dt { font-size: 0.78rem; }
+  }
+  @media (max-width: 480px) {
+    .cta .btn { flex: 1 1 auto; justify-content: center; }
+  }
+</style>

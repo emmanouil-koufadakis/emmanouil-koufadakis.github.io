@@ -1,0 +1,86 @@
+---
+/** 1200×630 social preview. `npm run render:assets` screenshots it to public/og.png. */
+import '../styles/global.css';
+import Monogram from '../components/Monogram.astro';
+import { profile } from '../data/cv';
+
+const tiles = [
+  { label: 'ROKU', years: '2020–now', h: 300 },
+  { label: 'PS4', years: '2016–19', h: 258 },
+  { label: 'tvOS', years: '2019–20', h: 235 },
+  { label: 'UWP', years: '2012–16', h: 200 },
+];
+---
+<!doctype html>
+<html lang="en-GB" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <title>OG image</title>
+  </head>
+  <body>
+    <div class="og">
+      <div class="left">
+        <div class="brand"><Monogram size={56} uid="og" /><span class="eyebrow">Featured · {profile.headline}</span></div>
+        <h1>Emmanouil<br />Koufadakis</h1>
+        <p class="pitch">Roku &amp; OTT apps for BBC, Channel 5, Showtime, ESPN and more.</p>
+        <div class="stats">
+          {profile.stats.map((s) => <div><strong>{s.value}</strong><span>{s.label}</span></div>)}
+        </div>
+      </div>
+      <div class="right" aria-hidden="true">
+        {
+          tiles.map((t, i) => (
+            <div class="tile art" style={`--h: ${t.h}; --i: ${i}`}>
+              <span class="b">{t.label}</span>
+              <span class="y">{t.years}</span>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </body>
+</html>
+
+<style>
+  :global(body) { margin: 0; }
+  .og {
+    width: 1200px;
+    height: 630px;
+    overflow: hidden;
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 40px;
+    padding: 64px 0 64px 72px;
+    background:
+      radial-gradient(60% 80% at 85% 20%, oklch(0.45 0.2 295 / 0.55), transparent 70%),
+      radial-gradient(40% 50% at 10% 100%, oklch(0.6 0.15 60 / 0.18), transparent 70%),
+      var(--color-bg);
+    color: var(--color-ink);
+  }
+  .brand { display: flex; align-items: center; gap: 18px; }
+  .eyebrow { font-size: 15px; color: var(--color-ink-soft); }
+  h1 { margin-top: 34px; font-size: 92px; font-weight: 800; line-height: 0.92; letter-spacing: -0.035em; }
+  .pitch { margin-top: 22px; font-size: 26px; color: var(--color-ink-soft); max-width: 640px; line-height: 1.35; }
+  .stats { display: flex; gap: 36px; margin-top: 34px; }
+  .stats div { display: flex; flex-direction: column; gap: 4px; max-width: 190px; }
+  .stats strong { font-family: var(--font-display); font-size: 40px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; }
+  .stats span { font-size: 15px; color: var(--color-ink-faint); line-height: 1.3; }
+  .right { position: relative; }
+  .tile {
+    position: absolute;
+    left: calc(var(--i) * 26px);
+    top: calc(var(--i) * 128px - 10px);
+    width: 380px;
+    aspect-ratio: 16 / 9;
+    border-radius: 18px;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.7);
+  }
+  .b { position: absolute; top: 18px; left: 22px; font-family: var(--font-mono); font-size: 14px; font-weight: 600; letter-spacing: 0.12em; padding: 3px 8px; border-radius: 6px; background: rgb(0 0 0 / 0.35); }
+  .y { position: absolute; top: 54px; left: 22px; font-family: var(--font-display); font-size: 30px; font-weight: 800; letter-spacing: -0.03em; }
+</style>

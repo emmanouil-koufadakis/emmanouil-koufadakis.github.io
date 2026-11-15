@@ -1,0 +1,125 @@
+---
+interface Props {
+  id: string;
+  title: string;
+  meta?: string;
+  /** Show the keyboard hint (use on the first rail only). */
+  hint?: boolean;
+  headingLevel?: 'h2' | 'h3';
+}
+const { id, title, meta, hint = false, headingLevel: H = 'h2' } = Astro.props;
+---
+<section class="rail" id={id} aria-labelledby={`${id}-title`}>
+  <div class="wrap rail-head">
+    <H id={`${id}-title`} class="section-title">{title}<span class="chev" aria-hidden="true">›</span></H>
+    {meta && <span class="eyebrow">{meta}</span>}
+    {
+      hint && (
+        <p class="hint" aria-hidden="true">
+          <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> browse like a TV remote
+        </p>
+      )
+    }
+  </div>
+  <div class="rail-body" data-rail-body>
+    <button type="button" class="rail-btn prev" data-rail-prev tabindex="-1" aria-hidden="true" hidden>
+      <svg viewBox="0 0 24 24"><path d="m14.5 5-7 7 7 7" /></svg>
+    </button>
+    <ul class="track" data-rail aria-label={title}>
+      <slot />
+    </ul>
+    <button type="button" class="rail-btn next" data-rail-next tabindex="-1" aria-hidden="true" hidden>
+      <svg viewBox="0 0 24 24"><path d="m9.5 5 7 7-7 7" /></svg>
+    </button>
+  </div>
+</section>
+
+<style>
+  .rail { margin-top: clamp(2.5rem, 5vw, 4rem); }
+  .rail-head {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    margin-bottom: 0.25rem;
+  }
+  .chev {
+    display: inline-block;
+    margin-left: 0.35rem;
+    color: var(--color-accent);
+    transition: transform 0.25s var(--ease-out-soft);
+  }
+  .rail:focus-within .chev { transform: translateX(4px); }
+  .hint {
+    margin-left: auto;
+    font-size: 0.8125rem;
+    color: var(--color-ink-faint);
+    display: none;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .hint kbd {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 6px;
+    border: 1px solid var(--color-line);
+    background: var(--color-bg-raised);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-ink-soft);
+  }
+  .hint kbd:last-of-type { margin-right: 0.4rem; }
+  @media (hover: hover) and (pointer: fine) {
+    .hint { display: inline-flex; }
+  }
+
+  .rail-body { position: relative; }
+  .track {
+    --rail-pad: max(var(--gutter), calc((100% - 1440px) / 2 + var(--gutter)));
+    /* Containing block for absolutely positioned descendants (e.g. sr-only text),
+       so they stay inside the scroller instead of widening the page. */
+    position: relative;
+    display: flex;
+    gap: clamp(12px, 1.4vw, 20px);
+    margin: 0;
+    padding: 20px var(--rail-pad) 30px;
+    list-style: none;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--rail-pad);
+    scrollbar-width: none;
+  }
+  .track::-webkit-scrollbar { display: none; }
+  .track > :global(li) { flex: none; scroll-snap-align: start; }
+
+  .rail-btn {
+    position: absolute;
+    top: 20px;
+    bottom: 30px;
+    z-index: 2;
+    width: clamp(40px, 4vw, 56px);
+    display: grid;
+    place-items: center;
+    border: 0;
+    color: #fff;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+  .rail-btn[hidden] { display: none; }
+  .rail-btn.prev { left: 0; background: linear-gradient(to right, rgb(0 0 0 / 0.65), transparent); }
+  .rail-btn.next { right: 0; background: linear-gradient(to left, rgb(0 0 0 / 0.65), transparent); }
+  .rail-body:hover .rail-btn { opacity: 1; }
+  .rail-btn svg { width: 32px; height: 32px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  @media (hover: none) {
+    .rail-btn { display: none; }
+  }
+</style>
+
+<script>
+  import { initRails } from '../scripts/spatial-nav';
+  initRails();
+</script>

@@ -1,0 +1,31 @@
+---
+/** "EK" mark drawn as paths, so it never depends on font loading. */
+interface Props {
+  size?: number;
+  class?: string;
+  /** Unique id suffix so several monograms on one page get distinct gradients. */
+  uid?: string;
+}
+const { size = 36, class: className, uid = 'm' } = Astro.props;
+const gid = `ek-grad-${uid}`;
+---
+<svg
+  class={className}
+  width={size}
+  height={size}
+  viewBox="0 0 64 64"
+  aria-hidden="true"
+  focusable="false"
+>
+  <defs>
+    <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="oklch(0.74 0.17 295)" />
+      <stop offset="1" stop-color="oklch(0.38 0.2 285)" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill={`url(#${gid})`} />
+  <g fill="none" stroke="#fff" stroke-width="5.5" stroke-linecap="square">
+    <path d="M28 18H17v28h11M17 32h9" />
+    <path d="M37 18v28M49 18 38.5 32 49.5 46" />
+  </g>
+</svg>

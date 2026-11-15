@@ -1,0 +1,49 @@
+---
+import { skills } from '../data/cv';
+---
+<section id="skills" class="skills" aria-labelledby="skills-title">
+  <div class="wrap">
+    <p class="eyebrow">Skills</p>
+    <h2 id="skills-title" class="section-title">What I work with</h2>
+    <div class="grid">
+      {
+        skills.map((group, i) => (
+          <section class:list={['group', { lead: i === 0 }]} aria-labelledby={`skills-${i}`}>
+            <h3 id={`skills-${i}`}>{group.name}</h3>
+            <ul>
+              {group.items.map((item) => (
+                <li class="chip">{item}</li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .skills { margin-top: clamp(4rem, 8vw, 6rem); }
+  .section-title { margin-top: 0.5rem; }
+  .grid {
+    margin-top: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+    gap: 1rem;
+  }
+  .group {
+    padding: 1.4rem 1.4rem 1.5rem;
+    border-radius: 16px;
+    background: var(--color-bg-raised);
+    border: 1px solid var(--color-line);
+  }
+  .group.lead {
+    background:
+      radial-gradient(120% 120% at 100% 0%, color-mix(in oklab, var(--color-accent) 22%, transparent), transparent 60%),
+      var(--color-bg-raised);
+    border-color: color-mix(in oklab, var(--color-accent) 40%, var(--color-line));
+  }
+  h3 { font-size: 1.15rem; font-weight: 700; }
+  ul { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 1rem 0 0; padding: 0; list-style: none; }
+  .chip { white-space: normal; }
+</style>

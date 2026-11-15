@@ -1,0 +1,143 @@
+---
+import { formatPeriod, platformStyle, type Role } from '../data/cv';
+
+interface Props {
+  role: Role;
+}
+const { role } = Astro.props;
+const ps = platformStyle[role.platform];
+---
+<dialog id={`dlg-${role.id}`} class="dlg" aria-labelledby={`dlg-${role.id}-title`} closedby="any">
+  <div class="panel">
+    <header class="head art" style={`--h: ${ps.hue}`}>
+      <form method="dialog">
+        <button class="close" aria-label="Close details">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+        </button>
+      </form>
+      <p class="meta"><span class="badge">{ps.badge}</span>{formatPeriod(role)}</p>
+      <h2 id={`dlg-${role.id}-title`}>{role.title}</h2>
+      <p class="company">{role.company}</p>
+    </header>
+    <div class="body">
+      <p class="summary">{role.summary}</p>
+      <ul class="highlights">
+        {role.highlights.map((h) => <li>{h}</li>)}
+      </ul>
+      {
+        role.clients.length > 0 && (
+          <div class="clients">
+            <span class="eyebrow">Clients</span>
+            <ul>
+              {role.clients.map((c) => (
+                <li class="chip">{c}</li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+      {
+        role.caseStudy && (
+          <a class="btn btn-primary cs-link" href={`/work/${role.caseStudy}/`}>
+            Read the case study
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-5-5 5 5-5 5" /></svg>
+          </a>
+        )
+      }
+    </div>
+  </div>
+</dialog>
+
+<style>
+  .dlg {
+    width: min(720px, calc(100% - 2rem));
+    max-height: min(88vh, 900px);
+    margin: auto;
+    padding: 0;
+    border: 1px solid var(--color-line);
+    border-radius: 18px;
+    background: var(--color-bg-raised);
+    color: var(--color-ink);
+    box-shadow: 0 40px 120px -20px rgb(0 0 0 / 0.6);
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .dlg::backdrop {
+    background: rgb(8 6 14 / 0.6);
+    backdrop-filter: blur(6px);
+  }
+  .dlg[open] { animation: dlg-in 0.35s var(--ease-out-soft); }
+  .dlg[open]::backdrop { animation: fade-in 0.3s ease-out; }
+  .head {
+    position: relative;
+    padding: 4.5rem 1.75rem 1.5rem;
+  }
+  .head::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgb(0 0 0 / 0.5), transparent 75%);
+  }
+  .head > * { position: relative; z-index: 1; }
+  .head > form { position: static; }
+  .close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 0;
+    background: rgb(0 0 0 / 0.4);
+    color: #fff;
+    cursor: pointer;
+  }
+  .close:hover { background: rgb(0 0 0 / 0.6); }
+  .close:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+  .close svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .badge { padding: 0.15rem 0.45rem; border-radius: 5px; background: rgb(0 0 0 / 0.35); font-weight: 600; }
+  h2 { margin-top: 0.6rem; font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.25rem); font-weight: 800; }
+  .company { margin-top: 0.35rem; font-weight: 550; opacity: 0.9; }
+  .body { padding: 1.5rem 1.75rem 1.9rem; }
+  .summary { font-size: 1.0625rem; color: var(--color-ink); }
+  .highlights { margin: 1.1rem 0 0; padding: 0 0 0 1.1rem; list-style: none; display: grid; gap: 0.65rem; }
+  .highlights li { position: relative; color: var(--color-ink-soft); }
+  .highlights li::before {
+    content: '';
+    position: absolute;
+    left: -1.1rem;
+    top: 0.62em;
+    width: 6px;
+    height: 6px;
+    border-radius: 2px;
+    background: var(--color-accent);
+  }
+  .clients { margin-top: 1.5rem; display: grid; gap: 0.6rem; }
+  .clients ul { display: flex; flex-wrap: wrap; gap: 0.45rem; list-style: none; margin: 0; padding: 0; }
+  .cs-link { margin-top: 1.75rem; }
+
+  @keyframes dlg-in {
+    from { opacity: 0; transform: translateY(16px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+</style>
+
+<script>
+  import { initDialogs } from '../scripts/dialogs';
+  initDialogs();
+</script>

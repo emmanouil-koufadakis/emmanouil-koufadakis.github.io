@@ -1,0 +1,46 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Rail from '../components/Rail.astro';
+import RoleCard from '../components/RoleCard.astro';
+import PosterCard from '../components/PosterCard.astro';
+import ClientTile from '../components/ClientTile.astro';
+import ReviewCard from '../components/ReviewCard.astro';
+import RoleDialog from '../components/RoleDialog.astro';
+import Synopsis from '../components/Synopsis.astro';
+import Skills from '../components/Skills.astro';
+import Credits from '../components/Credits.astro';
+import Contact from '../components/Contact.astro';
+import { clients, experience, recommendations } from '../data/cv';
+
+const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+// Each client tile opens the most recent role that client appears in.
+const roleFor = (name: string) => experience.find((r) => r.clients.includes(name))?.id;
+---
+<Base>
+  <Hero />
+
+  <Rail id="experience" title="Experience" meta={`${experience.length} roles · 2007 – now`} hint>
+    {experience.map((role) => <RoleCard role={role} />)}
+  </Rail>
+
+  <Rail id="work" title="Case studies" meta="Selected projects">
+    {work.map((entry) => <PosterCard entry={entry} />)}
+  </Rail>
+
+  <Rail id="reviews" title="What colleagues say" meta={`${recommendations.length} LinkedIn recommendations`}>
+    {recommendations.map((rec) => <ReviewCard rec={rec} />)}
+  </Rail>
+
+  <Rail id="clients" title="Brands I've built for" meta={`${clients.length} clients`}>
+    {clients.map((c) => <ClientTile client={c} roleId={roleFor(c.name)} />)}
+  </Rail>
+
+  <Synopsis />
+  <Skills />
+  <Credits />
+  <Contact />
+
+  {experience.map((role) => <RoleDialog role={role} />)}
+</Base>

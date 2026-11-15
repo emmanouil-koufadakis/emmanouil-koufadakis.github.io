@@ -1,0 +1,199 @@
+@import "tailwindcss";
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/hanken-grotesk";
+@import "@fontsource-variable/jetbrains-mono";
+
+/*
+ * Design tokens. See DESIGN.md.
+ * Colours use light-dark(), driven by `color-scheme` on :root:
+ *   - no data-theme  → follows the visitor's system setting
+ *   - data-theme=light|dark → the visitor's explicit choice (ThemeToggle)
+ */
+@theme {
+  --font-display: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Hanken Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --color-bg: light-dark(oklch(0.975 0.004 85), oklch(0.145 0.012 285));
+  --color-bg-raised: light-dark(oklch(1 0 0), oklch(0.185 0.014 285));
+  --color-surface: light-dark(oklch(0.94 0.006 285), oklch(0.235 0.016 285));
+  --color-line: light-dark(oklch(0.87 0.008 285), oklch(0.31 0.018 285));
+  --color-ink: light-dark(oklch(0.2 0.02 285), oklch(0.965 0.005 285));
+  --color-ink-soft: light-dark(oklch(0.4 0.02 285), oklch(0.8 0.012 285));
+  --color-ink-faint: light-dark(oklch(0.5 0.016 285), oklch(0.66 0.014 285));
+  --color-accent: light-dark(oklch(0.5 0.22 295), oklch(0.74 0.16 295));
+  --color-accent-ink: light-dark(oklch(0.99 0 0), oklch(0.17 0.03 295));
+  --color-live: light-dark(oklch(0.58 0.16 55), oklch(0.82 0.14 72));
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  :root {
+    color-scheme: light dark;
+    --gutter: clamp(16px, 4vw, 56px);
+    --nav-h: 64px;
+    --focus-ring: 0 0 0 3px var(--color-bg), 0 0 0 6px var(--color-accent);
+    --focus-glow: 0 18px 50px -12px color-mix(in oklab, var(--color-accent) 55%, transparent);
+  }
+  :root[data-theme="light"] { color-scheme: light; }
+  :root[data-theme="dark"] { color-scheme: dark; }
+
+  html {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 100%;
+    line-height: 1.55;
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--nav-h) + 16px);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    min-height: 100dvh;
+    background: var(--color-bg);
+    overflow-x: clip;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  p { text-wrap: pretty; }
+  ::selection { background: var(--color-accent); color: var(--color-accent-ink); }
+  :focus-visible { outline: 3px solid var(--color-accent); outline-offset: 3px; border-radius: 6px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .wrap {
+    width: 100%;
+    max-width: 1440px;
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-ink-faint);
+  }
+
+  .section-title {
+    font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.25rem);
+    font-weight: 700;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    min-height: 48px;
+    padding: 0.7rem 1.35rem;
+    border-radius: 10px;
+    font-weight: 650;
+    font-size: 1rem;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: transform 0.25s var(--ease-out-soft), box-shadow 0.25s var(--ease-out-soft), background-color 0.2s;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn:focus-visible { outline: none; box-shadow: var(--focus-ring); transform: scale(1.04); }
+  .btn svg { width: 1.1em; height: 1.1em; flex: none; }
+
+  .btn-primary { background: var(--color-ink); color: var(--color-bg); }
+  .btn-primary:hover { background: color-mix(in oklab, var(--color-ink) 88%, var(--color-accent)); }
+
+  .btn-ghost {
+    background: color-mix(in oklab, var(--color-ink) 10%, transparent);
+    color: var(--color-ink);
+    border-color: color-mix(in oklab, var(--color-ink) 14%, transparent);
+    backdrop-filter: blur(8px);
+  }
+  .btn-ghost:hover { background: color-mix(in oklab, var(--color-ink) 16%, transparent); }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 550;
+    background: color-mix(in oklab, var(--color-ink) 8%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-ink) 12%, transparent);
+    color: var(--color-ink-soft);
+    white-space: nowrap;
+  }
+
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-live);
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-live) 60%, transparent);
+    animation: live-pulse 2.2s infinite;
+  }
+
+  /* Card artwork: a lit gradient built from one hue (--h). */
+  .art {
+    --h: 295;
+    background:
+      radial-gradient(120% 90% at 85% 0%, oklch(0.78 0.16 var(--h) / 0.9), transparent 55%),
+      radial-gradient(90% 80% at 0% 100%, oklch(0.42 0.2 calc(var(--h) + 30) / 0.95), transparent 60%),
+      linear-gradient(160deg, oklch(0.5 0.18 var(--h)), oklch(0.22 0.09 calc(var(--h) + 15)));
+    color: oklch(0.99 0 0);
+  }
+
+  .sr-only-focusable:not(:focus) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .prose-cs h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 2.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .prose-cs p { color: var(--color-ink-soft); margin-block: 0.9rem; font-size: 1.0625rem; }
+  .prose-cs ul { margin-block: 0.9rem; padding-left: 1.2rem; list-style: none; }
+  .prose-cs li { position: relative; color: var(--color-ink-soft); margin-block: 0.55rem; font-size: 1.0625rem; }
+  .prose-cs li::before {
+    content: "";
+    position: absolute;
+    left: -1.1rem;
+    top: 0.68em;
+    width: 6px;
+    height: 6px;
+    border-radius: 2px;
+    background: var(--color-accent);
+  }
+  .prose-cs strong { color: var(--color-ink); font-weight: 650; }
+}
+
+@keyframes live-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-live) 55%, transparent); }
+  70% { box-shadow: 0 0 0 8px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}

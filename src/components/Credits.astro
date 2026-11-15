@@ -1,0 +1,92 @@
+---
+import { experience, formatPeriod, platformStyle } from '../data/cv';
+---
+<section id="credits" class="credits" aria-labelledby="credits-title">
+  <div class="wrap">
+    <p class="eyebrow">Full credits</p>
+    <h2 id="credits-title" class="section-title">Every role, in order</h2>
+    <ol class="list">
+      {
+        experience.map((role) => (
+          <li id={`credit-${role.id}`} class="item" style={`--h: ${platformStyle[role.platform].hue}`}>
+            <div class="when">
+              <span class="period">{formatPeriod(role)}</span>
+              <span class="platform">{role.platform}</span>
+            </div>
+            <div class="what">
+              <h3>{role.title}</h3>
+              <p class="company">{role.company}</p>
+              <ul class="highlights">
+                {role.highlights.map((h) => <li>{h}</li>)}
+              </ul>
+              {role.caseStudy && (
+                <a class="cs" href={`/work/${role.caseStudy}/`}>
+                  Case study<span class="sr-only">: {role.title}</span> →
+                </a>
+              )}
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .credits { margin-top: clamp(4rem, 8vw, 6rem); }
+  .section-title { margin-top: 0.5rem; }
+  .list { margin: 2.25rem 0 0; padding: 0; list-style: none; }
+  .item {
+    display: grid;
+    grid-template-columns: 15rem minmax(0, 1fr);
+    gap: 0.5rem 2.5rem;
+    padding-block: 1.75rem;
+    border-top: 1px solid var(--color-line);
+    scroll-margin-top: calc(var(--nav-h) + 16px);
+  }
+  .item:target { background: linear-gradient(to right, color-mix(in oklab, var(--color-accent) 10%, transparent), transparent 70%); }
+  .when { display: flex; flex-direction: column; gap: 0.45rem; }
+  .period { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--color-ink-soft); }
+  .platform {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.8125rem;
+    color: var(--color-ink-faint);
+  }
+  .platform::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    background: oklch(0.62 0.17 var(--h));
+  }
+  h3 { font-size: 1.25rem; font-weight: 700; }
+  .company { margin-top: 0.2rem; color: var(--color-ink-soft); font-weight: 550; }
+  .highlights { margin: 0.85rem 0 0; padding: 0 0 0 1.1rem; display: grid; gap: 0.45rem; list-style: none; max-width: 52rem; }
+  .highlights li { position: relative; color: var(--color-ink-soft); }
+  .highlights li::before {
+    content: '';
+    position: absolute;
+    left: -1.1rem;
+    top: 0.68em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--color-ink-faint);
+  }
+  .cs {
+    display: inline-block;
+    margin-top: 0.9rem;
+    color: var(--color-accent);
+    font-weight: 650;
+    text-decoration: none;
+    border-radius: 4px;
+  }
+  .cs:hover { text-decoration: underline; text-underline-offset: 3px; }
+  @media (max-width: 760px) {
+    .item { grid-template-columns: 1fr; }
+    .when { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
+  }
+</style>

@@ -1,0 +1,126 @@
+---
+import { platformStyle, shortYears, type Role } from '../data/cv';
+
+interface Props {
+  role: Role;
+}
+const { role } = Astro.props;
+const ps = platformStyle[role.platform];
+const subline = role.clients.length ? role.clients.join(' · ') : role.summary;
+---
+<li>
+  <a
+    href={`#credit-${role.id}`}
+    class="card"
+    data-rail-item
+    data-dialog-open={`dlg-${role.id}`}
+    aria-haspopup="dialog"
+  >
+    <div class="thumb art" style={`--h: ${ps.hue}`}>
+      <span class="badge">{ps.badge}</span>
+      {
+        !role.end && (
+          <span class="now">
+            <span class="live-dot" aria-hidden="true" />
+            Now
+          </span>
+        )
+      }
+      <span class="years">{shortYears(role)}</span>
+      <span class="company">{role.company}</span>
+    </div>
+    <div class="info">
+      <h3>{role.title}</h3>
+      <p>{subline}</p>
+    </div>
+  </a>
+</li>
+
+<style>
+  .card {
+    display: block;
+    width: clamp(250px, 24vw, 320px);
+    color: var(--color-ink);
+    text-decoration: none;
+    border-radius: 14px;
+  }
+  .card:focus-visible { outline: none; }
+  .thumb {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
+    overflow: hidden;
+    padding: 0.9rem 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    transition: transform 0.3s var(--ease-out-soft), box-shadow 0.3s var(--ease-out-soft);
+    box-shadow: 0 1px 0 rgb(255 255 255 / 0.08) inset;
+  }
+  .thumb::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgb(0 0 0 / 0.45), transparent 60%);
+  }
+  .thumb > * { position: relative; z-index: 1; }
+  /* Astro scopes with attribute selectors, so the corner labels need this extra specificity. */
+  .thumb > .badge, .thumb > .now { position: absolute; }
+  .badge {
+    position: absolute;
+    top: 0.8rem;
+    left: 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    padding: 0.2rem 0.45rem;
+    border-radius: 5px;
+    background: rgb(0 0 0 / 0.35);
+    backdrop-filter: blur(4px);
+  }
+  .now {
+    position: absolute;
+    top: 0.8rem;
+    right: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 650;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: rgb(0 0 0 / 0.4);
+  }
+  .years {
+    font-family: var(--font-display);
+    font-size: 2.1rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .company { font-size: 0.8125rem; font-weight: 550; opacity: 0.9; margin-top: 0.2rem; }
+  .info { padding: 0.75rem 0.2rem 0; }
+  h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  .info p {
+    margin-top: 0.3rem;
+    font-size: 0.875rem;
+    color: var(--color-ink-faint);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .card:hover .thumb { transform: scale(1.03); }
+  .card:focus-visible .thumb {
+    transform: scale(1.06);
+    box-shadow: var(--focus-ring), var(--focus-glow);
+  }
+  .card:focus-visible h3 { color: var(--color-accent); }
+</style>

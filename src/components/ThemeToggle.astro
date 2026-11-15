@@ -1,0 +1,65 @@
+---
+---
+<button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch colour theme">
+  <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" /><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6" /></svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6A8.5 8.5 0 0 1 9.4 4a8.5 8.5 0 1 0 10.6 10.6Z" /></svg>
+</button>
+
+<style>
+  .theme-toggle {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    color: var(--color-ink);
+    background: color-mix(in oklab, var(--color-ink) 8%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-ink) 12%, transparent);
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.25s var(--ease-out-soft);
+  }
+  .theme-toggle:hover { background: color-mix(in oklab, var(--color-ink) 14%, transparent); }
+  .theme-toggle:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  /* Light (default): offer the moon. Dark: offer the sun. */
+  .icon-sun { display: none; }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .icon-sun { display: block; }
+    :global(:root:not([data-theme="light"])) .icon-moon { display: none; }
+  }
+  :global(:root[data-theme="dark"]) .icon-sun { display: block; }
+  :global(:root[data-theme="dark"]) .icon-moon { display: none; }
+</style>
+
+<script>
+  const root = document.documentElement;
+  const media = matchMedia('(prefers-color-scheme: dark)');
+  const current = () => (root.dataset.theme as 'light' | 'dark' | undefined) ?? (media.matches ? 'dark' : 'light');
+
+  function label(btn: HTMLElement) {
+    btn.setAttribute('aria-label', current() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+  }
+
+  for (const btn of document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]')) {
+    label(btn);
+    btn.addEventListener('click', () => {
+      const next = current() === 'dark' ? 'light' : 'dark';
+      root.dataset.theme = next;
+      try {
+        localStorage.setItem('theme', next);
+      } catch {
+        /* storage unavailable: the choice lasts for this page view */
+      }
+      label(btn);
+    });
+    media.addEventListener('change', () => label(btn));
+  }
+</script>
