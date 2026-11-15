@@ -28,25 +28,9 @@ import { certifications, education, languages, profile, volunteering } from '../
       </div>
       <div class="block">
         <h3 class="eyebrow">Certifications</h3>
-        <ul>
-          {
-            certifications.map((c) => (
-              <li>
-                {c.url ? (
-                  <a href={c.url} target="_blank" rel="noopener">
-                    <strong>{c.name}</strong>
-                    <span class="sr-only"> (credential, opens in a new tab)</span> ↗
-                  </a>
-                ) : (
-                  <strong>{c.name}</strong>
-                )}
-                <span>
-                  {c.issuer} · {c.date}
-                </span>
-              </li>
-            ))
-          }
-        </ul>
+        <a class="jump" href="#certifications">
+          {certifications.length} certificates, including Anthropic <span aria-hidden="true">↓</span>
+        </a>
       </div>
       <div class="block">
         <h3 class="eyebrow">Languages</h3>
@@ -106,9 +90,16 @@ import { certifications, education, languages, profile, volunteering } from '../
   .block span { color: var(--color-ink-faint); font-size: 0.9375rem; }
   .langs { grid-template-columns: 1fr 1fr; }
   .block .diss { font-size: 0.875rem; font-style: italic; }
-  .block a { color: var(--color-ink); text-decoration: none; border-radius: 4px; }
-  .block a:hover strong { color: var(--color-accent); }
-  .block a:focus-visible { outline-offset: 2px; }
+  .jump {
+    display: inline-block;
+    margin-top: 0.6rem;
+    color: var(--color-accent);
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 4px;
+  }
+  .jump:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .jump:focus-visible { outline: none; box-shadow: var(--focus-ring); }
   @media (max-width: 860px) {
     .grid { grid-template-columns: 1fr; }
   }

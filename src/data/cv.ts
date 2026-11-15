@@ -24,12 +24,12 @@ export const profile = {
   pitch:
     'I build Roku and OTT apps for broadcasters and streaming brands: fast to load, easy to maintain and ready for certification.',
   about: [
-    'I have spent 16+ years in software, almost 7 of them building Roku apps in BrightScript and SceneGraph for BBC, Channel 5, Showtime, Crackle and Univision. Today I work as a contract Senior Roku Engineer at Deltatre.',
+    'I have spent 16+ years in software development, almost 7 of them building Roku apps in BrightScript and SceneGraph for BBC, Channel 5, Showtime, Crackle and Univision. Today I work as a contract Senior Roku Engineer at Deltatre.',
     'I am hands-on with the Roku Advertising Framework (RAF), EPG and parental controls, HLS/DASH playback, DRM and analytics, and I enjoy the detective work of tuning load time and memory across Roku devices. Before Roku, I led app teams on PlayStation, Apple TV, Windows, Xbox and the web for ESPN, CBS, NHL, WWE, Camelot and UEFA.',
   ],
   /** Short, CV-style summary used on the PDF. */
   cvSummary:
-    'Senior Roku engineer with 16+ years in software, including almost 7 years building and deploying Roku apps in BrightScript and SceneGraph for BBC, Channel 5, Showtime, Crackle and Univision. Hands-on with the Roku Advertising Framework (RAF), EPG and parental controls, HLS/DASH playback, DRM and analytics, and with tuning load time and memory use across Roku devices. Built a custom Roku MVVM framework that cut page data-loading time by 30–40%. Currently a contract Senior Roku Engineer at Deltatre. Earlier led PlayStation, Apple TV, Windows, Xbox and web app teams for ESPN, CBS, NHL, WWE, Camelot and UEFA.',
+    'Senior Roku engineer with 16+ years in software development, including almost 7 years building and deploying Roku apps in BrightScript and SceneGraph for BBC, Channel 5, Showtime, Crackle and Univision. Hands-on with the Roku Advertising Framework (RAF), EPG and parental controls, HLS/DASH playback, DRM and analytics, and with tuning load time and memory use across Roku devices. Built a custom Roku MVVM framework that cut page data-loading time by 30–40%. Currently a contract Senior Roku Engineer at Deltatre. Earlier led PlayStation, Apple TV, Windows, Xbox and web app teams for ESPN, CBS, NHL, WWE, Camelot and UEFA.',
   location: 'Surbiton, Surrey, UK',
   email: 'manos.koufadakis@gmail.com',
   linkedin: 'https://www.linkedin.com/in/emmanouil-koufadakis',
@@ -38,7 +38,7 @@ export const profile = {
   availability: 'Available within 30 days',
   workPreference: 'Contract or permanent · remote or London',
   stats: [
-    { value: '16+', label: 'years in software' },
+    { value: '16+', label: 'years in software development' },
     { value: '~7', label: 'years building for Roku' },
     { value: '30–40%', label: 'page load time saved by my Roku MVVM framework' },
   ],
@@ -308,15 +308,38 @@ export const education = [
   },
 ];
 
-export const certifications: { name: string; issuer: string; date: string; url?: string }[] = [
+export const certifications: {
+  name: string;
+  issuer: string;
+  date: string;
+  url?: string;
+  /** Topics listed on the LinkedIn credential. */
+  topics: string[];
+  /** OKLCH hue for the issuer tile. */
+  hue: number;
+}[] = [
   {
     name: 'Introduction to agent skills',
     issuer: 'Anthropic',
     date: 'May 2026',
     url: 'https://verify.skilljar.com/c/8bttmhi2q6on',
+    topics: ['AI', 'Claude skills'],
+    hue: 45,
   },
-  { name: 'Become a ReactJS developer in 30 days', issuer: 'Udemy', date: 'Oct 2025' },
-  { name: 'Frontend web developer: modern HTML, CSS, JavaScript', issuer: 'Udemy', date: 'Sep 2025' },
+  {
+    name: 'Become a ReactJS developer in 30 days',
+    issuer: 'Udemy',
+    date: 'Oct 2025',
+    topics: ['React.js', 'Next.js'],
+    hue: 300,
+  },
+  {
+    name: 'Frontend web developer: modern HTML, CSS, JavaScript',
+    issuer: 'Udemy',
+    date: 'Sep 2025',
+    topics: ['HTML5', 'CSS', 'JavaScript'],
+    hue: 280,
+  },
 ];
 
 export const volunteering = [

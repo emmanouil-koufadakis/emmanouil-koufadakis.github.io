@@ -9,6 +9,7 @@ const links = [
   { href: '/#experience', label: 'Experience' },
   { href: '/#work', label: 'Case studies' },
   { href: '/#skills', label: 'Skills' },
+  { href: '/#certifications', label: 'Certifications' },
   { href: '/#credits', label: 'Full CV' },
   { href: '/#contact', label: 'Contact' },
 ];
@@ -25,7 +26,7 @@ const links = [
       }
       <span class="brand-name">{profile.name}</span>
     </a>
-    <nav aria-label="Main">
+    <nav class="desktop" aria-label="Main">
       <ul class="links">
         {links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
       </ul>
@@ -36,8 +37,21 @@ const links = [
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0 4.5-4.5M12 15l-4.5-4.5M5 19.5h14" /></svg>
         <span>CV <span class="cv-ext">PDF</span></span>
       </a>
+      <button class="menu-btn" type="button" popovertarget="site-menu" aria-label="Menu">
+        <span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>
+      </button>
     </div>
   </div>
+
+  <!-- Phone / tablet menu: a popover gives Esc, outside-click and focus handling for free. -->
+  <nav id="site-menu" class="menu" popover aria-label="Main">
+    <ul>
+      {links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+      <li class="menu-cv">
+        <a href={profile.cvFile} download>Download CV (PDF)</a>
+      </li>
+    </ul>
+  </nav>
 </header>
 
 <style>
@@ -84,7 +98,7 @@ const links = [
     object-position: 50% 30%;
     box-shadow: 0 0 0 2px var(--color-accent);
   }
-  nav { margin-left: auto; }
+  nav.desktop { margin-left: auto; }
   .links {
     display: flex;
     gap: 0.25rem;
@@ -107,9 +121,78 @@ const links = [
   .actions { display: flex; align-items: center; gap: 0.6rem; }
   .cv-btn { min-height: 44px; padding: 0.6rem 1rem; font-size: 0.9375rem; }
 
-  @media (max-width: 1080px) {
-    .links { display: none; }
+  /* ---------- hamburger + menu (shown below the desktop breakpoint) ---------- */
+  .menu-btn {
+    display: none;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    color: var(--color-ink);
+    background: color-mix(in oklab, var(--color-ink) 8%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-ink) 12%, transparent);
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  .menu-btn:hover { background: color-mix(in oklab, var(--color-ink) 14%, transparent); }
+  .menu-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  .bars { display: grid; gap: 4px; width: 18px; }
+  .bars i {
+    display: block;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transition: transform 0.25s var(--ease-out-soft), opacity 0.2s;
+  }
+  /* Bars turn into an X while the menu is open. */
+  .nav:has(.menu:popover-open) .bars i:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .nav:has(.menu:popover-open) .bars i:nth-child(2) { opacity: 0; }
+  .nav:has(.menu:popover-open) .bars i:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  .menu {
+    position: fixed;
+    inset: calc(var(--nav-h) + 6px) var(--gutter) auto auto;
+    width: min(20rem, calc(100vw - 2 * var(--gutter)));
+    margin: 0;
+    padding: 0.5rem;
+    border-radius: 16px;
+    border: 1px solid var(--color-line);
+    background: var(--color-bg-raised);
+    color: var(--color-ink);
+    box-shadow: 0 24px 48px -16px rgb(0 0 0 / 0.5);
+    opacity: 0;
+    translate: 0 -8px;
+    transition: opacity 0.2s, translate 0.2s var(--ease-out-soft), overlay 0.2s allow-discrete, display 0.2s allow-discrete;
+  }
+  .menu:popover-open { opacity: 1; translate: 0 0; }
+  @starting-style {
+    .menu:popover-open { opacity: 0; translate: 0 -8px; }
+  }
+  .menu::backdrop { background: rgb(0 0 0 / 0.3); }
+  .menu ul { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+  .menu a {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 0.6rem 0.9rem;
+    border-radius: 10px;
+    color: var(--color-ink);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.0625rem;
+  }
+  .menu a:hover { background: color-mix(in oklab, var(--color-ink) 8%, transparent); }
+  .menu a:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--color-accent); }
+  .menu-cv { margin-top: 0.35rem; padding-top: 0.35rem; border-top: 1px solid var(--color-line); }
+  .menu-cv a { color: var(--color-accent); }
+
+  @media (max-width: 1180px) {
+    nav.desktop { display: none; }
     .actions { margin-left: auto; }
+    .menu-btn { display: grid; }
+  }
+  @media (min-width: 1181px) {
+    .menu { display: none; }
   }
   @media (max-width: 560px) {
     /* Visually hidden but still the link's accessible name. */
@@ -137,5 +220,19 @@ const links = [
       { passive: true },
     );
     update();
+  }
+
+  // Close the menu after picking a link, and if the window grows to desktop width.
+  const menu = document.querySelector<HTMLElement>('#site-menu');
+  if (menu && 'hidePopover' in menu) {
+    const close = () => {
+      if (menu.matches(':popover-open')) menu.hidePopover();
+    };
+    menu.addEventListener('click', (e) => {
+      if ((e.target as Element).closest('a')) close();
+    });
+    window.matchMedia('(min-width: 1181px)').addEventListener('change', (e) => {
+      if (e.matches) close();
+    });
   }
 </script>

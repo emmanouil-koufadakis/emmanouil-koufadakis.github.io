@@ -10,6 +10,7 @@ import ReviewCard from '../components/ReviewCard.astro';
 import RoleDialog from '../components/RoleDialog.astro';
 import Synopsis from '../components/Synopsis.astro';
 import Skills from '../components/Skills.astro';
+import Certifications from '../components/Certifications.astro';
 import Credits from '../components/Credits.astro';
 import Contact from '../components/Contact.astro';
 import { clients, experience, recommendations } from '../data/cv';
@@ -39,6 +40,7 @@ const roleFor = (name: string) => experience.find((r) => r.clients.includes(name
 
   <Synopsis />
   <Skills />
+  <Certifications />
   <Credits />
   <Contact />
 
