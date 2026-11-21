@@ -7,6 +7,7 @@ import RoleCard from '../components/RoleCard.astro';
 import PosterCard from '../components/PosterCard.astro';
 import ClientTile from '../components/ClientTile.astro';
 import ReviewCard from '../components/ReviewCard.astro';
+import PostCard from '../components/PostCard.astro';
 import RoleDialog from '../components/RoleDialog.astro';
 import Synopsis from '../components/Synopsis.astro';
 import CareerGuide from '../components/CareerGuide.astro';
@@ -14,7 +15,7 @@ import Skills from '../components/Skills.astro';
 import Certifications from '../components/Certifications.astro';
 import Credits from '../components/Credits.astro';
 import Contact from '../components/Contact.astro';
-import { clients, experience, recommendations } from '../data/cv';
+import { clients, experience, posts, recommendations } from '../data/cv';
 
 const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
 // Each client tile opens the most recent role that client appears in.
@@ -37,6 +38,10 @@ const roleFor = (name: string) => experience.find((r) => r.clients.includes(name
 
   <Rail id="clients" title="Brands I've built for" meta={`${clients.length} clients`}>
     {clients.map((c) => <ClientTile client={c} roleId={roleFor(c.name)} />)}
+  </Rail>
+
+  <Rail id="posts" title="Posts & articles" meta={`${posts.length} ${posts.length === 1 ? 'post' : 'posts'} · shared on LinkedIn`}>
+    {posts.map((p) => <PostCard post={p} />)}
   </Rail>
 
   <CareerGuide />

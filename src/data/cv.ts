@@ -393,6 +393,40 @@ export const recommendations: Recommendation[] = [
   },
 ];
 
+/** Posts and articles shown in the "Posts & articles" rail, newest first. */
+export type Post = {
+  id: string;
+  kind: 'LinkedIn post' | 'Article';
+  title: string;
+  /** Short line under the title, e.g. the document's own subtitle. */
+  subtitle?: string;
+  /** YYYY-MM-DD */
+  date: string;
+  /** e.g. "4-page document" */
+  format?: string;
+  summary: string;
+  topics: string[];
+  url: string;
+  /** OKLCH hue for the card banner. */
+  hue: number;
+};
+
+export const posts: Post[] = [
+  {
+    id: 'philosophical-toolkit',
+    kind: 'LinkedIn post',
+    title: "The Software Engineer's Philosophical Toolkit",
+    subtitle: 'Ancient wisdom organised by thinker',
+    date: '2025-12-18',
+    format: '4-page document',
+    summary:
+      'I asked AI how ancient Greek philosophy applies to modern software engineering, and shared the article it produced, which organises the ideas by thinker.',
+    topics: ['Software engineering', 'Philosophy', 'Clean code', 'Tech leadership'],
+    url: 'https://www.linkedin.com/posts/emmanouil-koufadakis_the-software-engineers-philosophical-toolkit-ugcPost-7407431092787519488-J_b4/',
+    hue: 220,
+  },
+];
+
 export const languages = [
   { name: 'English', level: 'Fluent' },
   { name: 'Greek', level: 'Native' },
