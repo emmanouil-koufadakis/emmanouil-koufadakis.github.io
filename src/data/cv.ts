@@ -87,9 +87,10 @@ export const experience: Role[] = [
     end: '2025-11',
     platform: 'Roku',
     clients: ['BBC', 'Channel 5'],
-    summary: 'Owned Roku development for UK broadcasters, from architecture to production release.',
+    summary: 'Led Roku development for UK broadcasters Channel 5 and BBC, from architecture to delivery.',
     highlights: [
-      'Spearheaded Roku development for UK broadcasters BBC and Channel 5, owning the full lifecycle from architecture to production release.',
+      'Spearheaded Roku development for UK broadcasters Channel 5 and BBC, owning architecture, development and code quality, and took the Channel 5 app through to production release.',
+      "Built the new BBC app on the custom MVVM framework I architected, delivering a complete component library in the BBC's new visual style, ready for API integration when the BBC cancelled the project ahead of launch.",
       "Wrote the team's Roku documentation on code conventions and best coding practices, which became the standard onboarding resource for new Roku developers.",
       'Set design and coding standards for the Roku team and mentored junior developers.',
     ],

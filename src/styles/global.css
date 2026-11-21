@@ -232,6 +232,9 @@
     background: var(--color-accent);
   }
   .prose-cs strong { color: var(--color-ink); font-weight: 650; }
+  .prose-cs a { color: var(--color-accent); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; border-radius: 3px; }
+  .prose-cs a:hover { text-decoration-thickness: 2px; }
+  .prose-cs a:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 }
 
 @keyframes live-pulse {
