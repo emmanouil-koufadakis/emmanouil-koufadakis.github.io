@@ -1,0 +1,459 @@
+---
+/**
+ * Architecture diagram of the custom Roku MVVM framework.
+ * Left: the request path (View → View Model → Repository → Service → Data Model).
+ * Right: the managers the app scene owns (navigation, focus, modals).
+ * Flow buttons highlight the parts involved in one job and list its steps.
+ * Names are the framework's own base classes; no client code or endpoints.
+ */
+
+type FlowId = 'view' | 'logic' | 'nav' | 'focus' | 'data';
+
+const flows: { id: FlowId; label: string; steps: string[] }[] = [
+  {
+    id: 'view',
+    label: 'View creation',
+    steps: [
+      'A view asks the scene to open a path, e.g. <code>forward("/home")</code>.',
+      'ViewManager looks the path up in <code>viewDefinitions</code> and creates that view type.',
+      '<code>onInit(args)</code> runs, then the view joins the view container and the stack.',
+      'It is made visible and focused, then <code>onReady(args)</code> runs.',
+      'When it is removed, <code>deinit()</code> releases observers, view models and child components.',
+    ],
+  },
+  {
+    id: 'logic',
+    label: 'Business logic',
+    steps: [
+      'The view creates its View Model and observes <code>content</code>, <code>error</code> and <code>isLoadingData</code>.',
+      'It calls a View Model function, e.g. <code>getContent(path)</code>. Views never call the API themselves.',
+      'The View Model starts a Repository task, tracks the request and flags loading.',
+      'When data or an error arrives, it unobserves the task and sets its own fields.',
+      'The view renders the Data Models it receives. On <code>deinit</code>, open requests are untracked.',
+    ],
+  },
+  {
+    id: 'nav',
+    label: 'Navigation',
+    steps: [
+      'Any view calls <code>m.scene.callFunc("forward", "/path")</code>, or <code>back</code>, <code>backTo</code>, <code>sideways</code> or <code>reload</code>.',
+      'NavigationManager checks the path against the menu data and path overrides, then updates the history.',
+      'ViewManager carries it out: creates, shows, hides or deinits views on the stack.',
+      'The scene sets <code>navigationEvent</code>, the single source of truth.',
+      'Menu visibility and analytics react to that event.',
+    ],
+  },
+  {
+    id: 'focus',
+    label: 'Focus',
+    steps: [
+      'Components call <code>setFocus(node)</code> instead of setting focus directly.',
+      'FocusManager checks the node is focusable, on screen, visible, in the top-most layer (modals win over the menu and views) and not locked.',
+      'It sets <code>isFocused</code> on the node and <code>isChildFocused</code> on every parent.',
+      'FocusInterface turns those into <code>_onGainedFocus</code>, <code>_onChildGainedFocus</code> and <code>_onLostFocus</code> callbacks.',
+      'BaseGroup brings back the last focused child, and FocusGroups move focus with the remote and scroll.',
+    ],
+  },
+  {
+    id: 'data',
+    label: 'Data fetching',
+    steps: [
+      'A Repository is a Task, so requests run on a background thread and never block the UI.',
+      '<code>handleRequest()</code> adds common headers and calls the endpoint from the global config through Fetch.',
+      'Responses are normalised (JSON or text) and errors mapped: timeout, no internet, region blocked.',
+      'A Service filters out what the view does not need and adds derived fields.',
+      'It parses the result into Data Models: ContentNodes that SceneGraph lists render directly.',
+    ],
+  },
+];
+
+const stack = [
+  {
+    flows: 'view logic nav focus',
+    hue: 300,
+    tag: 'View',
+    cls: 'BaseView → BaseGroup',
+    title: 'View',
+    points: ['SceneGraph XML + BrightScript', 'Built from FocusGroups, rails and cards'],
+    chips: ['onInit', 'onReady', 'onBack', 'onReload', 'onLeaving', 'deinit'],
+  },
+  {
+    link: { flows: 'logic', down: 'callFunc("getContent")', up: 'observes content · error · isLoadingData' },
+    flows: 'logic data',
+    hue: 268,
+    tag: 'View model',
+    cls: 'BaseViewModel',
+    title: 'Business logic',
+    points: ['No UI code: decides what to load and how to shape it', 'Tracks open requests and loading state'],
+  },
+  {
+    link: { flows: 'logic data', down: 'control = "RUN"', up: 'content / error fields' },
+    flows: 'data',
+    hue: 222,
+    tag: 'Repository',
+    cls: 'BaseRepository (Task)',
+    title: 'API access',
+    points: ['Background thread, one task per request', 'handleRequest() through Fetch', 'Maps timeout, offline and region errors'],
+    chips: ['→ API endpoints'],
+  },
+  {
+    link: { flows: 'data', down: 'raw JSON', up: 'parsed result' },
+    flows: 'data',
+    hue: 186,
+    tag: 'Service',
+    cls: 'e.g. CollectionService',
+    title: 'Filter and parse',
+    points: ['Drops what the view does not need', 'Adds derived fields, e.g. watch progress'],
+  },
+  {
+    link: { flows: 'data', down: 'createObject', up: 'ContentNode tree' },
+    flows: 'data logic',
+    hue: 150,
+    tag: 'Data model',
+    cls: 'BaseModel (ContentNode)',
+    title: 'Typed content',
+    points: ['Fields lists and cards bind to directly', 'e.g. Collection → items'],
+  },
+];
+
+const shared = [
+  'Global config, theme and endpoints (m.global)',
+  'Translations',
+  'Logger',
+  'ObserverMixin: auto-unobserve on deinit',
+  'Deep linking',
+  'Rail mixins for new rail types',
+  'Rooibos unit tests',
+  'BrighterScript',
+];
+---
+<section id="architecture" class="arch-sec" aria-labelledby="arch-title" data-arch data-flow="all">
+  <div class="wrap">
+    <p class="eyebrow">Architecture</p>
+    <h2 id="arch-title" class="section-title">How the framework fits together</h2>
+    <p class="intro">Every screen follows the same path: a View shows data, a View Model decides what to load, a Repository fetches it on a background thread, and a Service turns it into typed Data Models. The scene's managers handle navigation, focus and dialogs for every screen.</p>
+
+    <div class="flows" role="group" aria-label="Follow a flow">
+      <button type="button" class="flow-btn" data-flow-btn="all" aria-pressed="true">Everything</button>
+      {flows.map((f) => <button type="button" class="flow-btn" data-flow-btn={f.id} aria-pressed="false">{f.label}</button>)}
+    </div>
+
+    <div class="steps" aria-live="polite">
+      <p data-flow-steps="all">Pick a flow to highlight the parts involved and follow it step by step.</p>
+      {
+        flows.map((f) => (
+          <ol data-flow-steps={f.id} hidden>
+            {f.steps.map((s) => <li set:html={s}></li>)}
+          </ol>
+        ))
+      }
+    </div>
+
+    <div class="panel">
+      <!-- App scene -->
+      <section class="node scene" data-flows="view nav focus" style="--h: 285">
+        <span class="bar" aria-hidden="true"></span>
+        <div class="head"><span class="tag">App scene</span><code class="cls">BaseAppScene</code></div>
+        <h3>Root of the app</h3>
+        <p class="pts-line">Owns NavigationManager, ViewManager, FocusManager and ModalContainer, and stacks three layers:</p>
+        <ul class="chips layers">
+          <li>viewContainer</li>
+          <li>menuContainer</li>
+          <li>modalContainer (top)</li>
+        </ul>
+      </section>
+
+      <div class="grid">
+        <!-- Request path -->
+        <div class="col">
+          <p class="col-label">Every screen</p>
+          {
+            stack.map((n) => (
+              <>
+                {n.link && (
+                  <div class="link" data-flows={n.link.flows}>
+                    <span class="dir down">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v15m0 0-5-5m5 5 5-5" /></svg>
+                      <code>{n.link.down}</code>
+                    </span>
+                    <span class="dir up">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20V5m0 0-5 5m5-5 5 5" /></svg>
+                      <code>{n.link.up}</code>
+                    </span>
+                  </div>
+                )}
+                <section class="node" data-flows={n.flows} style={`--h: ${n.hue}`}>
+                  <span class="bar" aria-hidden="true" />
+                  <div class="head">
+                    <span class="tag">{n.tag}</span>
+                    <code class="cls">{n.cls}</code>
+                  </div>
+                  <h3>{n.title}</h3>
+                  <ul class="pts">
+                    {n.points.map((p) => (
+                      <li>{p}</li>
+                    ))}
+                  </ul>
+                  {n.chips && (
+                    <ul class="chips">
+                      {n.chips.map((c) => (
+                        <li>{c}</li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+              </>
+            ))
+          }
+        </div>
+
+        <!-- Managers -->
+        <div class="col">
+          <p class="col-label">Owned by the scene</p>
+
+          <section class="node" data-flows="nav view" style="--h: 330">
+            <span class="bar" aria-hidden="true"></span>
+            <div class="head"><span class="tag">Navigation</span><code class="cls">m.scene.callFunc("forward", path)</code></div>
+            <h3>Where can the user go?</h3>
+            <div class="pair">
+              <div>
+                <code class="sub">NavigationManager</code>
+                <p>Checks paths against menu data and overrides. Keeps the history.</p>
+              </div>
+              <div>
+                <code class="sub">ViewManager</code>
+                <p>Maps path → view, then creates, stacks, hides and deinits views.</p>
+              </div>
+            </div>
+            <ul class="chips">
+              <li>forward</li><li>back</li><li>backTo</li><li>sideways</li><li>reload</li>
+            </ul>
+            <p class="out">→ <code>navigationEvent</code>: menu state and analytics</p>
+          </section>
+
+          <section class="node" data-flows="focus view" style="--h: 38">
+            <span class="bar" aria-hidden="true"></span>
+            <div class="head"><span class="tag">Focus</span><code class="cls">setFocus(node)</code></div>
+            <h3>One source of truth for focus</h3>
+            <div class="pair">
+              <div>
+                <code class="sub">FocusManager</code>
+                <p>Lives on <code>m.global</code>. Refuses off-screen, hidden, locked or covered nodes.</p>
+              </div>
+              <div>
+                <code class="sub">FocusInterface</code>
+                <p><code>isFocused</code> / <code>isChildFocused</code> → gained and lost focus callbacks.</p>
+              </div>
+            </div>
+            <ul class="chips">
+              <li>FocusGroup: D-pad by index + scroll</li>
+              <li>Restores last focused child</li>
+              <li>Focus lock</li>
+            </ul>
+          </section>
+
+          <section class="node" data-flows="focus nav" style="--h: 255">
+            <span class="bar" aria-hidden="true"></span>
+            <div class="head"><span class="tag">Modals</span><code class="cls">ModalContainer</code></div>
+            <h3>Dialogs on top of everything</h3>
+            <ul class="pts">
+              <li>Priority queue: the most important dialog shows first</li>
+              <li>Takes focus over the menu and views until dismissed</li>
+            </ul>
+          </section>
+
+          <section class="node shared" data-flows="view logic nav focus data" style="--h: 210">
+            <div class="head"><span class="tag">Shared foundations</span></div>
+            <ul class="chips">
+              {shared.map((s) => <li>{s}</li>)}
+            </ul>
+          </section>
+        </div>
+      </div>
+
+      <p class="foot">The HTTP client (Fetch) and the core of the focus system build on MIT-licensed open-source projects.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .arch-sec { margin-top: clamp(3rem, 6vw, 5rem); scroll-margin-top: calc(var(--nav-h) + 16px); }
+  .section-title { margin-top: 0.5rem; }
+  .intro { margin-top: 0.75rem; max-width: 52rem; color: var(--color-ink-soft); font-size: 1.0625rem; }
+
+  /* ---------- flow buttons + steps ---------- */
+  .flows { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.5rem; }
+  .flow-btn {
+    padding: 0.5rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in oklab, var(--color-ink) 14%, transparent);
+    background: color-mix(in oklab, var(--color-ink) 6%, transparent);
+    color: var(--color-ink-soft);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+  }
+  .flow-btn:hover { color: var(--color-ink); background: color-mix(in oklab, var(--color-ink) 12%, transparent); }
+  .flow-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  .flow-btn[aria-pressed='true'] { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-accent-ink); }
+
+  .steps {
+    margin-top: 1rem;
+    padding: 1rem 1.25rem;
+    border-radius: 14px;
+    border: 1px solid color-mix(in oklab, var(--color-accent) 35%, var(--color-line));
+    background: color-mix(in oklab, var(--color-accent) 7%, var(--color-bg-raised));
+    min-height: 4.5rem;
+  }
+  .steps p { margin: 0; color: var(--color-ink-soft); }
+  .steps ol { margin: 0; padding: 0; list-style: none; counter-reset: step; display: grid; gap: 0.55rem; }
+  .steps li { counter-increment: step; position: relative; padding-left: 2.1rem; color: var(--color-ink-soft); line-height: 1.5; }
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0.05rem;
+    width: 1.45rem;
+    height: 1.45rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--color-accent);
+    color: var(--color-accent-ink);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .steps :global(code), .node :global(code) { font-family: var(--font-mono); font-size: 0.85em; }
+  .steps :global(code) { color: var(--color-ink); }
+
+  /* ---------- diagram ---------- */
+  .panel {
+    margin-top: 1rem;
+    padding: clamp(1rem, 2vw, 1.5rem);
+    border-radius: 18px;
+    border: 1px solid var(--color-line);
+    background:
+      radial-gradient(90% 60% at 0% 0%, color-mix(in oklab, var(--color-accent) 10%, transparent), transparent 60%),
+      var(--color-bg-raised);
+    display: grid;
+    gap: 1.25rem;
+  }
+  .grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 1.25rem 1.5rem; align-items: start; }
+  .col { display: grid; gap: 0; }
+  .col > .node + .node { margin-top: 1rem; }
+  .col-label {
+    margin: 0 0 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-ink-faint);
+  }
+
+  .node {
+    position: relative;
+    padding: 1.05rem 1.1rem 1.1rem;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--color-bg);
+    border: 1px solid color-mix(in oklab, oklch(0.62 0.15 var(--h)) 40%, var(--color-line));
+    transition: opacity 0.25s, filter 0.25s, box-shadow 0.25s;
+  }
+  .bar { position: absolute; inset: 0 0 auto 0; height: 4px; background: linear-gradient(90deg, oklch(0.55 0.18 var(--h)), oklch(0.75 0.14 var(--h))); }
+  .head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+  .tag {
+    padding: 0.18rem 0.5rem;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: light-dark(oklch(0.38 0.14 var(--h)), oklch(0.85 0.1 var(--h)));
+    background: color-mix(in oklab, oklch(0.62 0.15 var(--h)) 18%, transparent);
+  }
+  .cls { color: var(--color-ink-faint); font-size: 0.75rem !important; }
+  .node h3 { margin-top: 0.55rem; font-size: 1.05rem; font-weight: 700; }
+  .pts { margin: 0.5rem 0 0; padding: 0 0 0 1.1rem; display: grid; gap: 0.25rem; list-style: disc; }
+  .pts li, .pts-line, .pair p, .out { font-size: 0.875rem; color: var(--color-ink-soft); line-height: 1.45; }
+  .pts li::marker { color: oklch(0.65 0.15 var(--h)); }
+  .pts-line { margin: 0.4rem 0 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.65rem 0 0; padding: 0; list-style: none; }
+  .chips li {
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--color-ink-soft);
+    background: color-mix(in oklab, var(--color-ink) 7%, transparent);
+  }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.6rem; }
+  .pair > div { padding: 0.6rem 0.7rem; border-radius: 10px; background: color-mix(in oklab, oklch(0.62 0.15 var(--h)) 8%, transparent); }
+  .pair p { margin: 0.25rem 0 0; }
+  .sub { font-size: 0.8125rem !important; font-weight: 600; color: var(--color-ink); }
+  .out { margin: 0.6rem 0 0; }
+
+  .scene .layers li:last-child { color: var(--color-ink); background: color-mix(in oklab, oklch(0.62 0.15 var(--h)) 22%, transparent); }
+  .shared { padding-top: 0.9rem; }
+
+  /* Connectors between the request-path layers: calls go down, data comes back up. */
+  .link {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    padding: 0.35rem 0.9rem;
+    transition: opacity 0.25s;
+  }
+  .dir { display: flex; align-items: center; gap: 0.35rem; min-width: 0; }
+  .dir svg { flex: none; width: 18px; height: 18px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .dir.down svg { stroke: var(--color-accent); }
+  .dir.up svg { stroke: var(--color-ink-faint); }
+  .dir code { font-size: 0.6875rem !important; color: var(--color-ink-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dir.up { justify-content: flex-end; }
+
+  .foot { margin: 0; font-size: 0.75rem; color: var(--color-ink-faint); }
+
+  /* ---------- highlighting one flow ---------- */
+  .arch-sec:not([data-flow='all']) .node,
+  .arch-sec:not([data-flow='all']) .link { opacity: 0.28; filter: saturate(0.4); }
+  .arch-sec[data-flow='view'] :is(.node, .link)[data-flows~='view'],
+  .arch-sec[data-flow='logic'] :is(.node, .link)[data-flows~='logic'],
+  .arch-sec[data-flow='nav'] :is(.node, .link)[data-flows~='nav'],
+  .arch-sec[data-flow='focus'] :is(.node, .link)[data-flows~='focus'],
+  .arch-sec[data-flow='data'] :is(.node, .link)[data-flows~='data'] { opacity: 1; filter: none; }
+  .arch-sec[data-flow='view'] .node[data-flows~='view'],
+  .arch-sec[data-flow='logic'] .node[data-flows~='logic'],
+  .arch-sec[data-flow='nav'] .node[data-flows~='nav'],
+  .arch-sec[data-flow='focus'] .node[data-flows~='focus'],
+  .arch-sec[data-flow='data'] .node[data-flows~='data'] {
+    box-shadow: 0 0 0 2px color-mix(in oklab, oklch(0.62 0.15 var(--h)) 70%, transparent), 0 12px 32px -16px oklch(0.5 0.18 var(--h));
+  }
+  /* The shared foundations support every flow, so they stay quietly in the background. */
+  .arch-sec:not([data-flow='all']) .node.shared { opacity: 0.6; box-shadow: none; filter: none; }
+
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 520px) {
+    .pair { grid-template-columns: 1fr; }
+    .link { grid-template-columns: 1fr; gap: 0.2rem; }
+    .dir.up { justify-content: flex-start; }
+  }
+</style>
+
+<script>
+  // Flow buttons: highlight one flow in the diagram and show its steps.
+  for (const root of document.querySelectorAll<HTMLElement>('[data-arch]')) {
+    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-flow-btn]'));
+    const panels = Array.from(root.querySelectorAll<HTMLElement>('[data-flow-steps]'));
+    const select = (id: string) => {
+      root.dataset.flow = id;
+      for (const b of buttons) b.setAttribute('aria-pressed', String(b.dataset.flowBtn === id));
+      for (const p of panels) p.hidden = p.dataset.flowSteps !== id;
+    };
+    for (const b of buttons) b.addEventListener('click', () => select(b.dataset.flowBtn!));
+  }
+</script>

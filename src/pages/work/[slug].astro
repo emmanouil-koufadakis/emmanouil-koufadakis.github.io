@@ -29,6 +29,7 @@ const facts = [
   { label: 'When', value: d.period },
   ...(d.team ? [{ label: 'Team', value: d.team }] : []),
 ];
+import MvvmArchitecture from '../../components/MvvmArchitecture.astro';
 ---
 <Base title={d.title} description={d.summary}>
   <article>
@@ -77,6 +78,8 @@ const facts = [
         </div>
       </aside>
     </div>
+
+    {d.diagram === 'mvvm' && <MvvmArchitecture />}
   </article>
 
   <Rail id="more" title="More like this">

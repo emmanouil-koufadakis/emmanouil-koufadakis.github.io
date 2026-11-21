@@ -18,6 +18,8 @@ const work = defineCollection({
     /** Decorative OKLCH hue for the poster artwork. */
     hue: z.number().min(0).max(360),
     order: z.number(),
+    /** Optional full-width diagram shown under the case study. */
+    diagram: z.enum(['mvvm']).optional(),
   }),
 });
 
