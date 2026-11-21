@@ -30,6 +30,7 @@ const facts = [
   ...(d.team ? [{ label: 'Team', value: d.team }] : []),
 ];
 import MvvmArchitecture from '../../components/MvvmArchitecture.astro';
+import MvvmDiagrams from '../../components/MvvmDiagrams.astro';
 ---
 <Base title={d.title} description={d.summary}>
   <article>
@@ -79,7 +80,14 @@ import MvvmArchitecture from '../../components/MvvmArchitecture.astro';
       </aside>
     </div>
 
-    {d.diagram === 'mvvm' && <MvvmArchitecture />}
+    {
+      d.diagram === 'mvvm' && (
+        <>
+          <MvvmArchitecture />
+          <MvvmDiagrams />
+        </>
+      )
+    }
   </article>
 
   <Rail id="more" title="More like this">

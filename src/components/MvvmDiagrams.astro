@@ -1,0 +1,509 @@
+---
+/**
+ * Two UML views of the custom Roku MVVM framework, drawn as SVG at build time:
+ * 1. Sequence diagram: what happens, in order, when the user opens a screen.
+ * 2. Class diagram: how the base classes extend SceneGraph nodes and how an
+ *    example screen's classes depend on each other.
+ * Order of calls and class members follow the framework's own code.
+ */
+
+const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const r1 = (n: number) => Math.round(n * 10) / 10;
+
+/* =====================================================================
+   1. Sequence diagram
+   ===================================================================== */
+
+const participants = [
+  { id: 'user', name: ['Remote'], type: 'user' },
+  { id: 'menu', name: ['Menu'], type: 'current view' },
+  { id: 'scene', name: ['AppScene'], type: 'BaseAppScene' },
+  { id: 'nav', name: ['Navigation', 'Manager'], type: 'history' },
+  { id: 'vm', name: ['ViewManager'], type: 'view stack' },
+  { id: 'view', name: ['HomeView'], type: 'BaseView' },
+  { id: 'model', name: ['ViewModel'], type: 'BaseViewModel' },
+  { id: 'repo', name: ['Repository'], type: 'background Task' },
+  { id: 'focus', name: ['FocusManager'], type: 'on m.global' },
+];
+
+type Msg =
+  | { from: string; to: string; label: string; kind: 'call' | 'async' | 'return' }
+  | { self: string; label: string }
+  | { divider: string };
+
+const messages: Msg[] = [
+  { from: 'user', to: 'menu', label: 'OK on "Home"', kind: 'call' },
+  { from: 'menu', to: 'scene', label: 'forward("/home")', kind: 'call' },
+  { from: 'scene', to: 'nav', label: 'forward("/home")', kind: 'call' },
+  { self: 'nav', label: 'path allowed? push to history' },
+  { from: 'nav', to: 'scene', label: 'true', kind: 'return' },
+  { from: 'scene', to: 'vm', label: 'forward(path, args)', kind: 'call' },
+  { self: 'vm', label: 'viewDefinitions → "HomeView"' },
+  { from: 'vm', to: 'view', label: 'createObject() → init()', kind: 'call' },
+  { from: 'view', to: 'model', label: 'create ViewModel', kind: 'call' },
+  { from: 'view', to: 'model', label: 'observe content, error, isLoadingData', kind: 'call' },
+  { from: 'view', to: 'model', label: 'getContent(path)', kind: 'call' },
+  { from: 'model', to: 'view', label: 'isLoadingData = true → spinner', kind: 'return' },
+  { from: 'model', to: 'repo', label: 'create Repository, set path', kind: 'call' },
+  { from: 'model', to: 'repo', label: 'observe content, error', kind: 'call' },
+  { from: 'model', to: 'repo', label: 'control = "RUN"', kind: 'async' },
+  { from: 'vm', to: 'view', label: 'onInit(args)', kind: 'call' },
+  { self: 'vm', label: 'previous view: onLeaving() + hide; append; clear stack' },
+  { from: 'vm', to: 'focus', label: 'setFocus(HomeView)', kind: 'call' },
+  { from: 'focus', to: 'view', label: 'isFocused → _onGainedFocus()', kind: 'return' },
+  { from: 'vm', to: 'view', label: 'onReady(args)', kind: 'call' },
+  { from: 'vm', to: 'scene', label: '{ previous, current }', kind: 'return' },
+  { self: 'scene', label: 'navigationEvent → menu, analytics' },
+  { divider: 'Meanwhile, on the background thread' },
+  { self: 'repo', label: 'handleRequest() → Fetch → API' },
+  { self: 'repo', label: 'Service: parseCollectionData() → models' },
+  { from: 'repo', to: 'model', label: 'content = models', kind: 'return' },
+  { self: 'model', label: 'unobserve task; parse for rails' },
+  { from: 'model', to: 'view', label: 'content', kind: 'return' },
+  { self: 'view', label: 'posterRail.setContent(content)' },
+  { from: 'view', to: 'focus', label: 'setFocus(rail) if still focused', kind: 'call' },
+  { from: 'model', to: 'view', label: 'isLoadingData = false → hide spinner', kind: 'return' },
+];
+
+const SW = 1080;
+const SPAD = 16;
+const colW = (SW - SPAD * 2) / participants.length;
+const pIndex = Object.fromEntries(participants.map((p, i) => [p.id, i]));
+const px = (id: string) => SPAD + colW * (pIndex[id] + 0.5);
+const headTop = 8;
+const headH = 58;
+const lifeTop = headTop + headH;
+
+const seq: string[] = [];
+let y = lifeTop + 36;
+let n = 0;
+for (const m of messages) {
+  if ('divider' in m) {
+    y += 6;
+    seq.push(`<line class="sq-divider" x1="${SPAD}" y1="${y}" x2="${SW - SPAD}" y2="${y}"/>`);
+    const w = m.divider.length * 6.4 + 28;
+    seq.push(`<rect class="sq-pill" x="${r1(SW / 2 - w / 2)}" y="${y - 11}" width="${r1(w)}" height="22" rx="11"/>`);
+    seq.push(`<text class="sq-pill-text" x="${SW / 2}" y="${y + 4}" text-anchor="middle">${esc(m.divider)}</text>`);
+    y += 40;
+    continue;
+  }
+  n += 1;
+  const num = `<tspan class="sq-num">${n}</tspan>`;
+  if ('self' in m) {
+    const x = px(m.self);
+    const dir = x > SW - 220 ? -1 : 1; // loop to the left near the right edge
+    seq.push(`<path class="sq-line" d="M${r1(x)} ${y} h${26 * dir} v14 h${-26 * dir}" marker-end="url(#sq-solid)"/>`);
+    seq.push(`<text class="sq-label" x="${r1(x + 34 * dir)}" y="${y + 11}" text-anchor="${dir > 0 ? 'start' : 'end'}">${num}  ${esc(m.label)}</text>`);
+    y += 40;
+  } else {
+    const x1 = px(m.from);
+    const x2 = px(m.to);
+    const cls = m.kind === 'return' ? 'sq-line sq-return' : 'sq-line';
+    const marker = m.kind === 'call' ? 'sq-solid' : 'sq-open';
+    const inset = x2 > x1 ? -3 : 3;
+    seq.push(`<line class="${cls}" x1="${r1(x1)}" y1="${y}" x2="${r1(x2 + inset)}" y2="${y}" marker-end="url(#${marker})"/>`);
+    seq.push(`<text class="sq-label" x="${r1((x1 + x2) / 2)}" y="${y - 7}" text-anchor="middle">${num}  ${esc(m.label)}</text>`);
+    y += 32;
+  }
+}
+const SH = y + 8;
+
+const seqHead: string[] = [];
+// Shaded column: the Repository works on its own Task thread.
+const rx = px('repo');
+seqHead.push(`<rect class="sq-thread" x="${r1(rx - colW / 2 + 5)}" y="${headTop}" width="${r1(colW - 10)}" height="${SH - headTop - 2}" rx="10"/>`);
+for (const p of participants) {
+  const x = px(p.id);
+  seqHead.push(`<line class="sq-life" x1="${r1(x)}" y1="${lifeTop}" x2="${r1(x)}" y2="${SH - 6}"/>`);
+  seqHead.push(`<rect class="sq-head" x="${r1(x - colW / 2 + 9)}" y="${headTop}" width="${r1(colW - 18)}" height="${headH}" rx="10"/>`);
+  const nameY = p.name.length === 2 ? headTop + 19 : headTop + 25;
+  p.name.forEach((line, i) => seqHead.push(`<text class="sq-name" x="${r1(x)}" y="${nameY + i * 14}" text-anchor="middle">${esc(line)}</text>`));
+  seqHead.push(`<text class="sq-type" x="${r1(x)}" y="${headTop + headH - 10}" text-anchor="middle">${esc(p.type)}</text>`);
+}
+
+const seqSvg = `<svg viewBox="0 0 ${SW} ${SH}" role="img" aria-labelledby="sq-title sq-desc" class="dg-svg">
+<title id="sq-title">Sequence diagram: opening a screen</title>
+<desc id="sq-desc">The remote press goes to the menu, which asks the app scene to go forward to /home. NavigationManager checks the path and records it in the history. ViewManager creates HomeView. In init, the view creates its view model, observes its content, error and loading fields, and calls getContent; the view model flags that it is loading, creates a repository, observes its content and error, and starts it on a background thread. ViewManager calls onInit, calls onLeaving on the previous view and hides it, adds the new view and clears the rest of the stack, gives it focus through FocusManager and calls onReady; the scene then sets navigationEvent for the menu and analytics. Meanwhile the repository requests the data through Fetch and a service parses it into models. The view model receives the content, stops observing the task, shapes it for the rails and passes it to the view, which loads it into its rail and focuses it, and finally the loading spinner hides.</desc>
+<defs>
+  <marker id="sq-solid" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="sq-mk-fill" d="M0 0 10 5 0 10z"/></marker>
+  <marker id="sq-open" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="sq-mk-open" d="M1 1 9 5 1 9"/></marker>
+</defs>
+${seqHead.join('\n')}
+${seq.join('\n')}
+</svg>`;
+
+/* =====================================================================
+   2. Class diagram
+   ===================================================================== */
+
+type Kind = 'sg' | 'base' | 'app';
+interface Box {
+  id: string;
+  name: string;
+  kind: Kind;
+  c: number;
+  r: number;
+  stereo?: string;
+  fields?: string[];
+  methods?: string[];
+}
+
+const boxes: Box[] = [
+  // SceneGraph built-in nodes
+  { id: 'Scene', name: 'Scene', kind: 'sg', c: 0, r: 0 },
+  { id: 'Group', name: 'Group', kind: 'sg', c: 1, r: 0 },
+  { id: 'Node', name: 'Node', kind: 'sg', c: 3, r: 0 },
+  { id: 'Task', name: 'Task', kind: 'sg', c: 4, r: 0 },
+  { id: 'ContentNode', name: 'ContentNode', kind: 'sg', c: 5, r: 0 },
+  // Framework base classes
+  { id: 'BaseAppScene', name: 'BaseAppScene', kind: 'base', c: 0, r: 1, fields: ['navigationEvent'], methods: ['forward(path, args)', 'back(args)', 'backTo(path)', 'sideways(path)', 'reload()'] },
+  { id: 'BaseGroup', name: 'BaseGroup', kind: 'base', c: 1, r: 1, fields: ['isFocused', 'isChildFocused', 'isInitialFocus'], methods: ['_onGainedFocus(args)', '_getDefaultFocusable()', 'deinit()'] },
+  { id: 'FocusManager', name: 'FocusManager', kind: 'base', c: 2, r: 1, stereo: 'on m.global', fields: ['focusedNode', 'isLocked'], methods: ['setFocusOn(node)', 'setFocusLocked(node)'] },
+  { id: 'BaseViewModel', name: 'BaseViewModel', kind: 'base', c: 3, r: 1, fields: ['isAlive', 'isLoadingData'], methods: ['_setLoadingState()', '_updateAndTrackRepo()', 'deinit()'] },
+  { id: 'BaseRepository', name: 'BaseRepository', kind: 'base', c: 4, r: 1, methods: ['handleRequest(endpoint)', 'buildCommonHeaders()', 'deinit()'] },
+  { id: 'BaseModel', name: 'BaseModel', kind: 'base', c: 5, r: 1, fields: ['type'], methods: ['deinit()'] },
+  { id: 'NavigationManager', name: 'NavigationManager', kind: 'base', c: 0, r: 2, stereo: 'object', fields: ['_history', '_menuData'], methods: ['forward(path)', 'back()', 'backTo(path)', 'getHistory()'] },
+  { id: 'BaseView', name: 'BaseView', kind: 'base', c: 1, r: 2, fields: ['isInStack', 'viewArgs'], methods: ['onInit(args)', 'onReady(args)', 'onBack(args)', 'onReload(args)', 'onLeaving()', 'hasContent()'] },
+  { id: 'FocusGroup', name: 'FocusGroup', kind: 'base', c: 2, r: 2, fields: ['focusDirection', 'scrollDirection'], methods: ['updateFocusedIndex(i)', 'onKeyEvent(key, press)'] },
+  { id: 'ViewManager', name: 'ViewManager', kind: 'base', c: 0, r: 3, stereo: 'object', fields: ['_viewDefinitions'], methods: ['forward(path, args)', 'back(args)', 'getTopView()'] },
+  // Example screen
+  { id: 'HomeView', name: 'HomeView', kind: 'app', c: 1, r: 3, stereo: 'example view', methods: ['_loadData()', '_getDefaultFocusable()'] },
+  { id: 'CollectionVM', name: 'CollectionViewViewModel', kind: 'app', c: 3, r: 3, stereo: 'example view model', fields: ['content', 'error'], methods: ['getContent(path)'] },
+  { id: 'CollectionRepo', name: 'CollectionDataRepository', kind: 'app', c: 4, r: 3, stereo: 'example repository', fields: ['content', 'error'], methods: ['getContent()'] },
+  { id: 'CollectionModel', name: 'CollectionModel', kind: 'app', c: 5, r: 3, stereo: 'example model', fields: ['title', 'page', 'total', 'template'] },
+  { id: 'CollectionService', name: 'CollectionService', kind: 'app', c: 4, r: 4, stereo: 'functions', methods: ['parseCollectionData(data)'] },
+];
+
+const UW = 1300;
+const UM = 16;
+const BW = 168;
+const GX = 52;
+const LH = 14;
+const colX = (c: number) => UM + c * (BW + GX);
+const headOf = (b: Box) => (b.kind === 'sg' ? 28 : b.stereo ? 38 : 27);
+const heightOf = (b: Box) => {
+  if (b.kind === 'sg') return 28;
+  const f = b.fields?.length ? b.fields.length * LH + 9 : 0;
+  const m = b.methods?.length ? b.methods.length * LH + 9 : 0;
+  return headOf(b) + f + m + 3;
+};
+const rows = Math.max(...boxes.map((b) => b.r)) + 1;
+const rowH = Array.from({ length: rows }, (_, r) => Math.max(...boxes.filter((b) => b.r === r).map(heightOf)));
+const GY = [0, 40, 46, 46, 46];
+const rowTop: number[] = [];
+let acc = UM;
+for (let r = 0; r < rows; r++) {
+  acc += GY[r] ?? 46;
+  if (r === 0) acc = UM;
+  rowTop.push(acc);
+  acc += rowH[r];
+}
+const UH = acc + UM;
+const rowBottom = (r: number) => rowTop[r] + rowH[r];
+
+const geo = Object.fromEntries(
+  boxes.map((b) => {
+    const x = colX(b.c);
+    const top = rowTop[b.r];
+    const h = heightOf(b);
+    return [b.id, { x, top, w: BW, h, cx: x + BW / 2, bottom: top + h, midY: top + Math.min(headOf(b), 28) / 2 + (b.stereo ? 6 : 0), r: b.r }];
+  }),
+);
+
+const uml: string[] = [];
+const umlLabels: string[] = [];
+const label = (x: number, yy: number, text: string, anchor = 'middle') =>
+  umlLabels.push(`<text class="um-elabel" x="${r1(x)}" y="${r1(yy)}" text-anchor="${anchor}">${esc(text)}</text>`);
+
+// Inheritance: child → parent, hollow triangle at the parent.
+const extendsEdges: [string, string][] = [
+  ['BaseAppScene', 'Scene'],
+  ['BaseGroup', 'Group'],
+  ['FocusManager', 'Group'],
+  ['BaseView', 'BaseGroup'],
+  ['FocusGroup', 'BaseGroup'],
+  ['HomeView', 'BaseView'],
+  ['BaseViewModel', 'Node'],
+  ['CollectionVM', 'BaseViewModel'],
+  ['BaseRepository', 'Task'],
+  ['CollectionRepo', 'BaseRepository'],
+  ['BaseModel', 'ContentNode'],
+  ['CollectionModel', 'BaseModel'],
+];
+for (const [child, parent] of extendsEdges) {
+  const c = geo[child];
+  const p = geo[parent];
+  if (Math.abs(c.cx - p.cx) < 1) {
+    uml.push(`<path class="um-edge" d="M${c.cx} ${c.top} V${p.bottom + 1}" marker-end="url(#um-extends)"/>`);
+  } else {
+    const mid = rowBottom(c.r - 1) + (GY[c.r] ?? 46) / 2;
+    uml.push(`<path class="um-edge" d="M${c.cx} ${c.top} V${mid} H${p.cx} V${p.bottom + 1}" marker-end="url(#um-extends)"/>`);
+  }
+}
+
+// Composition: owner ◆—— part.
+{
+  const s = geo.BaseAppScene;
+  const nm = geo.NavigationManager;
+  uml.push(`<path class="um-edge" d="M${s.cx} ${s.bottom} V${nm.top}" marker-start="url(#um-owns)"/>`);
+  const vm = geo.ViewManager;
+  uml.push(`<path class="um-edge" d="M${s.x} ${s.midY} H${UM / 2 - 2} V${vm.midY} H${vm.x}" marker-start="url(#um-owns)"/>`);
+  label(s.cx + 6, s.bottom + 26, 'owns', 'start');
+
+  const hv = geo.HomeView;
+  const cvm = geo.CollectionVM;
+  uml.push(`<path class="um-edge" d="M${hv.x + hv.w} ${hv.midY} H${cvm.x - 1}" marker-start="url(#um-owns)" marker-end="url(#um-open)"/>`);
+  label((hv.x + hv.w + cvm.x) / 2, hv.midY - 7, 'owns 1');
+}
+
+// Dependencies: dashed, open arrow.
+const dep = (d: string, lx: number, ly: number, text: string, anchor = 'middle') => {
+  uml.push(`<path class="um-edge um-dep" d="${d}" marker-end="url(#um-open)"/>`);
+  label(lx, ly, text, anchor);
+};
+{
+  const a = geo.ViewManager;
+  const b = geo.HomeView;
+  dep(`M${a.x + a.w} ${b.midY} H${b.x - 1}`, (a.x + a.w + b.x) / 2, b.midY - 7, '«creates»');
+}
+{
+  const a = geo.BaseGroup;
+  const b = geo.FocusManager;
+  dep(`M${a.x + a.w} ${a.midY} H${b.x - 1}`, (a.x + a.w + b.x) / 2, a.midY - 7, '«setFocus»');
+}
+{
+  const a = geo.CollectionVM;
+  const b = geo.CollectionRepo;
+  dep(`M${a.x + a.w} ${a.midY} H${b.x - 1}`, (a.x + a.w + b.x) / 2, a.midY - 7, '«runs»');
+}
+{
+  const a = geo.CollectionRepo;
+  const b = geo.CollectionService;
+  dep(`M${a.cx + 30} ${a.bottom} V${b.top - 1}`, a.cx + 36, (a.bottom + b.top) / 2 + 4, '«parses with»', 'start');
+}
+{
+  const a = geo.CollectionService;
+  const b = geo.CollectionModel;
+  dep(`M${a.x + a.w} ${a.midY} H${b.cx} V${b.bottom + 1}`, (a.x + a.w + b.cx) / 2, a.midY - 7, '«creates»');
+}
+
+// Boxes on top of the edges.
+for (const b of boxes) {
+  const g = geo[b.id];
+  if (b.kind === 'sg') {
+    uml.push(`<rect class="um-box um-sg" x="${g.x}" y="${g.top}" width="${g.w}" height="${g.h}" rx="8"/>`);
+    uml.push(`<text class="um-sg-name" x="${g.cx}" y="${g.top + 18}" text-anchor="middle">${esc(b.name)}</text>`);
+    continue;
+  }
+  const hh = headOf(b);
+  uml.push(`<g class="um-${b.kind}">`);
+  uml.push(`<rect class="um-box" x="${g.x}" y="${g.top}" width="${g.w}" height="${g.h}" rx="9"/>`);
+  uml.push(`<path class="um-band" d="M${g.x} ${g.top + 9} a9 9 0 0 1 9 -9 h${g.w - 18} a9 9 0 0 1 9 9 v${hh - 9} h${-g.w} z"/>`);
+  if (b.stereo) uml.push(`<text class="um-stereo" x="${g.cx}" y="${g.top + 14}" text-anchor="middle">«${esc(b.stereo)}»</text>`);
+  uml.push(`<text class="um-name" x="${g.cx}" y="${g.top + (b.stereo ? 29 : 18)}" text-anchor="middle">${esc(b.name)}</text>`);
+  let yy = g.top + hh;
+  if (b.fields?.length) {
+    uml.push(`<line class="um-sep" x1="${g.x}" y1="${yy}" x2="${g.x + g.w}" y2="${yy}"/>`);
+    b.fields.forEach((f, i) => uml.push(`<text class="um-member" x="${g.x + 10}" y="${yy + 15 + i * LH}">${esc(f)}</text>`));
+    yy += b.fields.length * LH + 9;
+  }
+  if (b.methods?.length) {
+    uml.push(`<line class="um-sep" x1="${g.x}" y1="${yy}" x2="${g.x + g.w}" y2="${yy}"/>`);
+    b.methods.forEach((m, i) => uml.push(`<text class="um-member um-method" x="${g.x + 10}" y="${yy + 15 + i * LH}">${esc(m)}</text>`));
+  }
+  uml.push(`</g>`);
+}
+
+const umlSvg = `<svg viewBox="0 0 ${UW} ${UH}" role="img" aria-labelledby="um-title um-desc" class="dg-svg">
+<title id="um-title">Class diagram of the framework</title>
+<desc id="um-desc">SceneGraph nodes at the top: Scene, Group, Node, Task and ContentNode. The framework extends them: BaseAppScene from Scene, BaseGroup and FocusManager from Group, BaseViewModel from Node, BaseRepository from Task and BaseModel from ContentNode. BaseView and FocusGroup extend BaseGroup. BaseAppScene owns NavigationManager and ViewManager; ViewManager creates views; BaseGroup sets focus through FocusManager. In the example screen, HomeView extends BaseView and owns a CollectionViewViewModel, which runs a CollectionDataRepository; the repository parses data with CollectionService, which creates CollectionModel nodes.</desc>
+<defs>
+  <marker id="um-extends" viewBox="0 0 14 14" refX="7" refY="1" markerWidth="14" markerHeight="14" orient="0" markerUnits="userSpaceOnUse"><path class="um-mk-hollow" d="M7 1 13 12 1 12z"/></marker>
+  <marker id="um-owns" viewBox="0 0 16 10" refX="1" refY="5" markerWidth="16" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path class="um-mk-fill" d="M1 5 8 1 15 5 8 9z"/></marker>
+  <marker id="um-open" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path class="um-mk-open" d="M1 1 9 5 1 9"/></marker>
+</defs>
+${uml.join('\n')}
+${umlLabels.join('\n')}
+</svg>`;
+---
+<section id="internals" class="dg-sec" aria-labelledby="dg-title" data-diagrams>
+  <div class="wrap">
+    <p class="eyebrow">Under the hood</p>
+    <h2 id="dg-title" class="section-title">Inside the framework</h2>
+    <p class="intro">Two UML views of the same code: what happens, in order, when the user opens a screen, and how the base classes fit together.</p>
+
+    <div class="tabs" role="tablist" aria-label="Diagram">
+      <button type="button" class="tab" role="tab" id="tab-seq" aria-controls="panel-seq" aria-selected="true" data-tab="seq">Opening a screen <span class="kind">sequence</span></button>
+      <button type="button" class="tab" role="tab" id="tab-uml" aria-controls="panel-uml" aria-selected="false" data-tab="uml">Class structure <span class="kind">UML class</span></button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="panel-seq" aria-labelledby="tab-seq" data-panel="seq">
+      <p class="swipe" aria-hidden="true">Swipe sideways to see the whole diagram →</p>
+      <div class="scroller" tabindex="0" aria-label="Sequence diagram, scrolls sideways on small screens">
+        <div class="canvas canvas-seq" set:html={seqSvg} />
+      </div>
+      <ul class="key" aria-label="How to read it">
+        <li><svg viewBox="0 0 40 10" aria-hidden="true"><line x1="2" y1="5" x2="32" y2="5" class="k-line" /><path d="M30 1 38 5 30 9z" class="k-fill" /></svg>Call</li>
+        <li><svg viewBox="0 0 40 10" aria-hidden="true"><line x1="2" y1="5" x2="36" y2="5" class="k-line" /><path d="M31 1 38 5 31 9" class="k-open" /></svg>Starts background work</li>
+        <li><svg viewBox="0 0 40 10" aria-hidden="true"><line x1="2" y1="5" x2="36" y2="5" class="k-line k-dash" /><path d="M31 1 38 5 31 9" class="k-open" /></svg>Result or field change coming back</li>
+        <li><span class="k-thread"></span>Runs on a background thread</li>
+      </ul>
+    </div>
+
+    <div class="panel" role="tabpanel" id="panel-uml" aria-labelledby="tab-uml" data-panel="uml">
+      <p class="swipe" aria-hidden="true">Swipe sideways to see the whole diagram →</p>
+      <div class="scroller" tabindex="0" aria-label="Class diagram, scrolls sideways on small screens">
+        <div class="canvas canvas-uml" set:html={umlSvg} />
+      </div>
+      <ul class="key" aria-label="How to read it">
+        <li><svg viewBox="0 0 40 14" aria-hidden="true"><line x1="2" y1="7" x2="28" y2="7" class="k-line" /><path d="M28 1 38 7 28 13z" class="k-hollow" /></svg>Extends</li>
+        <li><svg viewBox="0 0 40 14" aria-hidden="true"><path d="M2 7 9 3 16 7 9 11z" class="k-fill" /><line x1="16" y1="7" x2="38" y2="7" class="k-line" /></svg>Owns</li>
+        <li><svg viewBox="0 0 40 14" aria-hidden="true"><line x1="2" y1="7" x2="36" y2="7" class="k-line k-dash" /><path d="M31 3 38 7 31 11" class="k-open" /></svg>Uses or creates</li>
+        <li><span class="k-box k-sg"></span>SceneGraph node</li>
+        <li><span class="k-box k-base"></span>Framework</li>
+        <li><span class="k-box k-app"></span>Example screen</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .dg-sec { margin-top: clamp(3rem, 6vw, 5rem); scroll-margin-top: calc(var(--nav-h) + 16px); }
+  .section-title { margin-top: 0.5rem; }
+  .intro { margin-top: 0.75rem; max-width: 52rem; color: var(--color-ink-soft); font-size: 1.0625rem; }
+
+  /* ---------- tabs ---------- */
+  .tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.5rem; }
+  .tab {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.55rem 1rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in oklab, var(--color-ink) 14%, transparent);
+    background: color-mix(in oklab, var(--color-ink) 6%, transparent);
+    color: var(--color-ink-soft);
+    font: inherit;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+  }
+  .tab:hover { color: var(--color-ink); background: color-mix(in oklab, var(--color-ink) 12%, transparent); }
+  .tab:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  .tab[aria-selected='true'] { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-accent-ink); }
+  .kind { font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.75; }
+
+  /* ---------- panels ---------- */
+  .panel {
+    margin-top: 1rem;
+    padding: clamp(0.75rem, 1.6vw, 1.25rem);
+    border-radius: 18px;
+    border: 1px solid var(--color-line);
+    background:
+      radial-gradient(90% 60% at 0% 0%, color-mix(in oklab, var(--color-accent) 9%, transparent), transparent 60%),
+      var(--color-bg-raised);
+  }
+  .swipe { display: none; margin: 0 0 0.6rem; font-size: 0.8125rem; color: var(--color-ink-faint); }
+  @media (max-width: 1040px) { .swipe { display: block; } }
+  .scroller { overflow-x: auto; overscroll-behavior-x: contain; border-radius: 12px; }
+  .scroller:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  .canvas { min-width: 980px; }
+  .canvas-uml { min-width: 1060px; }
+  .canvas :global(.dg-svg) { display: block; width: 100%; height: auto; }
+
+  /* ---------- shared SVG text ---------- */
+  .canvas :global(text) { font-family: var(--font-mono); }
+
+  /* ---------- sequence diagram ---------- */
+  .canvas :global(.sq-head) { fill: var(--color-bg); stroke: color-mix(in oklab, var(--color-accent) 45%, var(--color-line)); stroke-width: 1.2; }
+  .canvas :global(.sq-name) { font-family: var(--font-display); font-size: 12px; font-weight: 700; fill: var(--color-ink); }
+  .canvas :global(.sq-type) { font-size: 9.5px; fill: var(--color-ink-faint); }
+  .canvas :global(.sq-life) { stroke: color-mix(in oklab, var(--color-ink) 22%, transparent); stroke-width: 1.2; stroke-dasharray: 4 5; }
+  .canvas :global(.sq-thread) { fill: color-mix(in oklab, oklch(0.62 0.13 200) 12%, transparent); stroke: color-mix(in oklab, oklch(0.62 0.13 200) 35%, transparent); stroke-dasharray: 3 4; }
+  .canvas :global(.sq-line) { fill: none; stroke: var(--color-ink-soft); stroke-width: 1.5; }
+  .canvas :global(.sq-return) { stroke-dasharray: 5 4; stroke: var(--color-ink-faint); }
+  .canvas :global(.sq-mk-fill) { fill: var(--color-ink-soft); }
+  .canvas :global(.sq-mk-open) { fill: none; stroke: var(--color-ink-soft); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .canvas :global(.sq-label) {
+    font-size: 10.5px;
+    fill: var(--color-ink);
+    paint-order: stroke;
+    stroke: var(--color-bg-raised);
+    stroke-width: 5px;
+    stroke-linejoin: round;
+  }
+  .canvas :global(.sq-num) { fill: var(--color-accent); font-weight: 700; }
+  .canvas :global(.sq-divider) { stroke: color-mix(in oklab, oklch(0.62 0.13 200) 55%, transparent); stroke-width: 1.2; stroke-dasharray: 6 5; }
+  .canvas :global(.sq-pill) { fill: var(--color-bg); stroke: color-mix(in oklab, oklch(0.62 0.13 200) 55%, transparent); }
+  .canvas :global(.sq-pill-text) { font-size: 10.5px; font-weight: 600; fill: var(--color-ink-soft); }
+
+  /* ---------- class diagram ---------- */
+  .canvas :global(.um-edge) { fill: none; stroke: var(--color-ink-soft); stroke-width: 1.4; }
+  .canvas :global(.um-dep) { stroke-dasharray: 5 4; stroke: var(--color-ink-faint); }
+  .canvas :global(.um-mk-hollow) { fill: var(--color-bg-raised); stroke: var(--color-ink-soft); stroke-width: 1.4; }
+  .canvas :global(.um-mk-fill) { fill: var(--color-ink-soft); }
+  .canvas :global(.um-mk-open) { fill: none; stroke: var(--color-ink-faint); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .canvas :global(.um-elabel) {
+    font-size: 10px;
+    fill: var(--color-ink-faint);
+    paint-order: stroke;
+    stroke: var(--color-bg-raised);
+    stroke-width: 5px;
+    stroke-linejoin: round;
+  }
+  .canvas :global(.um-box) { fill: var(--color-bg); stroke-width: 1.2; }
+  .canvas :global(.um-sg) { fill: transparent; stroke: color-mix(in oklab, var(--color-ink) 30%, transparent); stroke-dasharray: 4 3; }
+  .canvas :global(.um-sg-name) { font-size: 11px; fill: var(--color-ink-faint); }
+  .canvas :global(.um-base .um-box) { stroke: color-mix(in oklab, var(--color-accent) 50%, var(--color-line)); }
+  .canvas :global(.um-base .um-band) { fill: color-mix(in oklab, var(--color-accent) 16%, transparent); }
+  .canvas :global(.um-app .um-box) { stroke: color-mix(in oklab, oklch(0.62 0.13 175) 60%, var(--color-line)); }
+  .canvas :global(.um-app .um-band) { fill: color-mix(in oklab, oklch(0.62 0.13 175) 16%, transparent); }
+  .canvas :global(.um-sep) { stroke: var(--color-line); }
+  .canvas :global(.um-name) { font-size: 10.5px; font-weight: 700; fill: var(--color-ink); }
+  .canvas :global(.um-stereo) { font-size: 9px; fill: var(--color-ink-faint); }
+  .canvas :global(.um-member) { font-size: 10px; fill: var(--color-ink-soft); }
+  .canvas :global(.um-method) { fill: var(--color-ink); }
+
+  /* ---------- keys ---------- */
+  .key { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; margin: 0.9rem 0 0; padding: 0; list-style: none; font-size: 0.8125rem; color: var(--color-ink-soft); }
+  .key li { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .key svg { width: 40px; height: 14px; overflow: visible; }
+  .k-line { stroke: var(--color-ink-soft); stroke-width: 1.5; }
+  .k-dash { stroke-dasharray: 5 4; stroke: var(--color-ink-faint); }
+  .k-fill { fill: var(--color-ink-soft); }
+  .k-open { fill: none; stroke: var(--color-ink-soft); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .k-hollow { fill: var(--color-bg-raised); stroke: var(--color-ink-soft); stroke-width: 1.4; }
+  .k-thread { width: 22px; height: 14px; border-radius: 4px; background: color-mix(in oklab, oklch(0.62 0.13 200) 14%, transparent); border: 1px dashed color-mix(in oklab, oklch(0.62 0.13 200) 45%, transparent); }
+  .k-box { width: 22px; height: 14px; border-radius: 4px; border: 1.2px solid; background: var(--color-bg); }
+  .k-sg { border-style: dashed; border-color: color-mix(in oklab, var(--color-ink) 30%, transparent); background: transparent; }
+  .k-base { border-color: color-mix(in oklab, var(--color-accent) 50%, var(--color-line)); box-shadow: inset 0 5px 0 color-mix(in oklab, var(--color-accent) 16%, transparent); }
+  .k-app { border-color: color-mix(in oklab, oklch(0.62 0.13 175) 60%, var(--color-line)); box-shadow: inset 0 5px 0 color-mix(in oklab, oklch(0.62 0.13 175) 16%, transparent); }
+</style>
+
+<script>
+  // Tabs: show one diagram at a time. Without JavaScript both stay visible.
+  for (const root of document.querySelectorAll<HTMLElement>('[data-diagrams]')) {
+    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-tab]'));
+    const panels = Array.from(root.querySelectorAll<HTMLElement>('[data-panel]'));
+    const select = (id: string, focus = false) => {
+      for (const t of tabs) {
+        const on = t.dataset.tab === id;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        if (on && focus) t.focus();
+      }
+      for (const p of panels) p.hidden = p.dataset.panel !== id;
+    };
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => select(t.dataset.tab!));
+      t.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+        e.preventDefault();
+        const next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+        select(next.dataset.tab!, true);
+      });
+    });
+    select('seq');
+  }
+</script>
