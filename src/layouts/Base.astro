@@ -3,6 +3,7 @@ import '../styles/global.css';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import { profile } from '../data/cv';
+import { GOATCOUNTER_CODE } from '../data/analytics';
 
 interface Props {
   title?: string;
@@ -75,6 +76,12 @@ const jsonLd = {
       } catch (e) {}
     </script>
     <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    {
+      /* Visitor stats: published site only, and only once a GoatCounter code is set. */
+      GOATCOUNTER_CODE && import.meta.env.PROD && (
+        <script is:inline async data-goatcounter={`https://${GOATCOUNTER_CODE}.goatcounter.com/count`} src="https://gc.zgo.at/count.js" />
+      )
+    }
   </head>
   <body>
     <a href="#main" class="skip-link">Skip to content</a>
@@ -83,6 +90,11 @@ const jsonLd = {
       <slot />
     </main>
     <Footer />
+
+    <script>
+      import { initEventTracking } from '../scripts/analytics';
+      initEventTracking();
+    </script>
   </body>
 </html>
 

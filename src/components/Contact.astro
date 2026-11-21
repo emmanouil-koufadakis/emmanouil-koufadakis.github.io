@@ -154,6 +154,8 @@ const action = key ? 'https://api.web3forms.com/submit' : `mailto:${profile.emai
 </style>
 
 <script>
+  import { trackEvent } from '../scripts/analytics';
+
   const form = document.querySelector<HTMLFormElement>('[data-contact-form]');
 
   if (form) {
@@ -212,6 +214,7 @@ const action = key ? 'https://api.web3forms.com/submit' : `mailto:${profile.emai
         form.reset();
         fields.forEach((f) => f.removeAttribute('aria-invalid'));
         say("Thanks! Your message is on its way, and I'll get back to you soon.", 'ok');
+        trackEvent('contact-form-sent', 'Contact form sent');
       } catch {
         say(`Sorry, that didn't send. Please email me at ${email}.`, 'error');
       } finally {
