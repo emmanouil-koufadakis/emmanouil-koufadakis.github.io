@@ -5,6 +5,7 @@ import { profile } from '../data/cv';
 const key = PUBLIC_WEB3FORMS_KEY?.trim() || '';
 // Without a Web3Forms key the form falls back to opening the visitor's email app.
 const action = key ? 'https://api.web3forms.com/submit' : `mailto:${profile.email}`;
+const bookingUrl = profile.bookingUrl.trim();
 ---
 <section id="contact" class="contact" aria-labelledby="contact-title">
   <div class="wrap">
@@ -13,7 +14,7 @@ const action = key ? 'https://api.web3forms.com/submit' : `mailto:${profile.emai
       <p class="eyebrow">Contact</p>
       <h2 id="contact-title">Got a Roku or OTT project?<br />Let's talk.</h2>
       <p class="lead">
-        I'm open to contract and permanent roles, remote or in London. Send a message here, or reach me directly.
+        I'm open to contract and permanent roles, remote or in London. {bookingUrl ? 'Send a message, book a call, or reach me directly.' : 'Send a message here, or reach me directly.'}
       </p>
       <ul class="direct">
         <li>
@@ -35,6 +36,22 @@ const action = key ? 'https://api.web3forms.com/submit' : `mailto:${profile.emai
           </span>
         </li>
       </ul>
+
+      {
+        bookingUrl && (
+          <div class="book">
+            <div class="book-text">
+              <p class="book-title">Prefer to talk?</p>
+              <p class="book-sub">{profile.bookingNote}</p>
+            </div>
+            <a class="btn btn-primary book-btn" href={bookingUrl} target="_blank" rel="noopener" data-track="book-call">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5" /><path d="M3.5 10h17M8 3v4M16 3v4M9 14.5l2 2 4-4" /></svg>
+              Book a call
+              <span class="sr-only"> (opens in a new tab)</span>
+            </a>
+          </div>
+        )
+      }
     </div>
 
     <form
@@ -120,6 +137,24 @@ const action = key ? 'https://api.web3forms.com/submit' : `mailto:${profile.emai
     stroke-linecap: round;
     stroke-linejoin: round;
   }
+
+  /* "Book a call" card, beside the form. */
+  .book {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 1.25rem;
+    margin-top: 2rem;
+    padding: 1.1rem 1.25rem;
+    border-radius: 16px;
+    background: var(--color-bg);
+    border: 1px solid color-mix(in oklab, var(--color-accent) 40%, var(--color-line));
+    max-width: 30rem;
+  }
+  .book-title { font-family: var(--font-display); font-size: 1.15rem; font-weight: 750; letter-spacing: -0.01em; }
+  .book-sub { margin-top: 0.2rem; font-size: 0.9375rem; color: var(--color-ink-soft); }
+  .book-btn { flex: none; }
 
   .form { display: grid; gap: 1rem; align-content: start; }
   .field { display: grid; gap: 0.4rem; }

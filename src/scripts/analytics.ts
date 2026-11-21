@@ -30,6 +30,13 @@ export function initEventTracking() {
       const el = (event.target as Element | null)?.closest?.('a, button');
       if (!el) return;
 
+      // Anything marked data-track="name" counts as that event, e.g. the "Book a call" button.
+      const tracked = el.closest<HTMLElement>('[data-track]');
+      if (tracked) {
+        trackEvent(tracked.dataset.track!);
+        return;
+      }
+
       const opener = el.closest<HTMLElement>('[data-dialog-open]');
       if (opener) {
         trackEvent(`role/${opener.dataset.dialogOpen!.replace(/^dlg-/, '')}`, 'Role details opened');

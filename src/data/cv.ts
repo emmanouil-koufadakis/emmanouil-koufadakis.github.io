@@ -35,6 +35,9 @@ export const profile = {
   linkedin: 'https://www.linkedin.com/in/emmanouil-koufadakis',
   linkedinLabel: 'linkedin.com/in/emmanouil-koufadakis',
   recommendationsUrl: 'https://www.linkedin.com/in/emmanouil-koufadakis/details/recommendations/',
+  /** Public Cal.com or Calendly booking page. The "Book a call" card shows once this is set. */
+  bookingUrl: 'https://cal.com/emmanouil-koufadakis-linpvd/30min',
+  bookingNote: 'Pick a time that suits you for a 30-minute video call.',
   availability: 'Available within 30 days',
   workPreference: 'Contract or permanent · remote or London',
   stats: [
