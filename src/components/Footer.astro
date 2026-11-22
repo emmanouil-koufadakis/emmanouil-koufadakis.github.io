@@ -1,7 +1,10 @@
 ---
-import { profile } from '../data/cv';
+import { getContent } from '../data/content';
+const { profile, t } = getContent(Astro.currentLocale);
 import { GOATCOUNTER_CODE } from '../data/analytics';
 const year = new Date().getFullYear();
+// Text with an embedded link is stored with a {link} placeholder and split around it.
+const [statsBefore, statsAfter] = t('ui.footer.stats').split('{link}');
 ---
 <footer class="footer">
   <div class="wrap footer-inner">
@@ -10,13 +13,13 @@ const year = new Date().getFullYear();
       <span>{profile.headline} · {profile.location}</span>
     </p>
     <ul class="links">
-      <li><a href={`mailto:${profile.email}`}>Email</a></li>
-      <li><a href={profile.linkedin} rel="me noopener" target="_blank">LinkedIn<span class="sr-only"> (opens in a new tab)</span></a></li>
-      <li><a href={profile.cvFile} download>Download CV</a></li>
+      <li><a href={`mailto:${profile.email}`}>{t('ui.footer.email')}</a></li>
+      <li><a href={profile.linkedin} rel="me noopener" target="_blank">{t('ui.footer.linkedin')}<span class="sr-only"> {t('ui.common.new_tab')}</span></a></li>
+      <li><a href={profile.cvFile} download>{t('ui.common.download_cv')}</a></li>
     </ul>
     <p class="fine">
-      © {year} {profile.name}. Client names belong to their owners and are shown only to describe my work.
-      {GOATCOUNTER_CODE && <> Visits are counted anonymously with <a href="https://www.goatcounter.com" rel="noopener" target="_blank">GoatCounter</a>: no cookies, no personal data.</>}
+      {t('ui.footer.fine', { year, name: profile.name })}
+      {GOATCOUNTER_CODE && <> {statsBefore}<a href="https://www.goatcounter.com" rel="noopener" target="_blank">GoatCounter</a>{statsAfter}</>}
     </p>
   </div>
 </footer>

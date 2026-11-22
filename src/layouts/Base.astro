@@ -2,7 +2,8 @@
 import '../styles/global.css';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
-import { profile } from '../data/cv';
+import { getContent } from '../data/content';
+const { profile, t } = getContent(Astro.currentLocale);
 import { GOATCOUNTER_CODE } from '../data/analytics';
 
 interface Props {
@@ -84,7 +85,7 @@ const jsonLd = {
     }
   </head>
   <body>
-    <a href="#main" class="skip-link">Skip to content</a>
+    <a href="#main" class="skip-link">{t('ui.base.skip')}</a>
     <Nav />
     <main id="main" tabindex="-1">
       <slot />

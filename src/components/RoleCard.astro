@@ -1,6 +1,7 @@
 ---
 import Shine from './Shine.astro';
-import { platformStyle, shortYears, type Role } from '../data/cv';
+import { getContent, type Role } from '../data/content';
+const { platformStyle, shortYears, t } = getContent(Astro.currentLocale);
 
 interface Props {
   role: Role;
@@ -23,7 +24,7 @@ const subline = role.clients.length ? role.clients.join(' · ') : role.summary;
         !role.end && (
           <span class="now">
             <span class="live-dot" aria-hidden="true" />
-            Now
+            {t('ui.role.now')}
           </span>
         )
       }

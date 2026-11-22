@@ -2,22 +2,23 @@
 import { Image } from 'astro:assets';
 import Monogram from './Monogram.astro';
 import ThemeToggle from './ThemeToggle.astro';
-import { profile } from '../data/cv';
+import { getContent } from '../data/content';
+const { profile, t } = getContent(Astro.currentLocale);
 import { headshot } from '../data/headshot';
 
 // Every home page section, in page order. Short labels so they fit the top bar.
 const links = [
-  { href: '/#experience', label: 'Experience' },
-  { href: '/#work', label: 'Case studies' },
-  { href: '/#reviews', label: 'Reviews' },
-  { href: '/#clients', label: 'Brands' },
-  { href: '/#posts', label: 'Posts' },
-  { href: '/#guide', label: 'Career' },
-  { href: '/#about', label: 'About' },
-  { href: '/#skills', label: 'Skills' },
-  { href: '/#certifications', label: 'Certifications' },
-  { href: '/#credits', label: 'Full CV' },
-  { href: '/#contact', label: 'Contact' },
+  { href: '/#experience', label: t('ui.nav.experience') },
+  { href: '/#work', label: t('ui.nav.work') },
+  { href: '/#reviews', label: t('ui.nav.reviews') },
+  { href: '/#clients', label: t('ui.nav.clients') },
+  { href: '/#posts', label: t('ui.nav.posts') },
+  { href: '/#guide', label: t('ui.nav.guide') },
+  { href: '/#about', label: t('ui.nav.about') },
+  { href: '/#skills', label: t('ui.nav.skills') },
+  { href: '/#certifications', label: t('ui.nav.certifications') },
+  { href: '/#credits', label: t('ui.nav.credits') },
+  { href: '/#contact', label: t('ui.nav.contact') },
 ];
 // Desktop bar: Contact is always shown; of the rest, up to MAX_TABS sit in the bar
 // and the others live in the chevron dropdown (fewer tabs if the bar runs out of room).
@@ -37,11 +38,11 @@ const MAX_TABS = 4;
       }
       <span class="brand-name">{profile.name}</span>
     </a>
-    <nav class="desktop" aria-label="Main" data-desktop-nav data-max={MAX_TABS}>
+    <nav class="desktop" aria-label={t('ui.nav.main_label')} data-desktop-nav data-max={MAX_TABS}>
       <ul class="links">
         {sections.map((l, i) => <li data-i={i} hidden={i >= MAX_TABS}><a href={l.href}>{l.label}</a></li>)}
         <li class="more" data-more>
-          <button type="button" class="more-btn" aria-expanded="false" aria-controls="more-list" aria-label="More sections" title="More sections">
+          <button type="button" class="more-btn" aria-expanded="false" aria-controls="more-list" aria-label={t('ui.nav.more')} title={t('ui.nav.more')}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
           </button>
           <ul id="more-list" class="more-list">
@@ -55,20 +56,20 @@ const MAX_TABS = 4;
       <ThemeToggle />
       <a class="btn btn-primary cv-btn" href={profile.cvFile} download>
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0 4.5-4.5M12 15l-4.5-4.5M5 19.5h14" /></svg>
-        <span>CV <span class="cv-ext">PDF</span></span>
+        <span>{t('ui.nav.cv')} <span class="cv-ext">{t('ui.nav.cv_ext')}</span></span>
       </a>
-      <button class="menu-btn" type="button" popovertarget="site-menu" aria-label="Menu">
+      <button class="menu-btn" type="button" popovertarget="site-menu" aria-label={t('ui.nav.menu')}>
         <span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>
       </button>
     </div>
   </div>
 
   <!-- Phone / tablet menu: a popover gives Esc, outside-click and focus handling for free. -->
-  <nav id="site-menu" class="menu" popover aria-label="Main">
+  <nav id="site-menu" class="menu" popover aria-label={t('ui.nav.main_label')}>
     <ul>
       {links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
       <li class="menu-cv">
-        <a href={profile.cvFile} download>Download CV (PDF)</a>
+        <a href={profile.cvFile} download>{t('ui.nav.download_cv_pdf')}</a>
       </li>
     </ul>
   </nav>

@@ -1,6 +1,7 @@
 ---
 import { PUBLIC_WEB3FORMS_KEY } from 'astro:env/client';
-import { profile } from '../data/cv';
+import { getContent } from '../data/content';
+const { profile, t } = getContent(Astro.currentLocale);
 
 const key = PUBLIC_WEB3FORMS_KEY?.trim() || '';
 // Without a Web3Forms key the form falls back to opening the visitor's email app.
@@ -11,10 +12,10 @@ const bookingUrl = profile.bookingUrl.trim();
   <div class="wrap">
   <div class="grid">
     <div class="intro">
-      <p class="eyebrow">Contact</p>
-      <h2 id="contact-title">Got a Roku or OTT project?<br />Let's talk.</h2>
+      <p class="eyebrow">{t('ui.contact.eyebrow')}</p>
+      <h2 id="contact-title">{t('ui.contact.title_1')}<br />{t('ui.contact.title_2')}</h2>
       <p class="lead">
-        I'm open to contract and permanent roles, remote or in London. {bookingUrl ? 'Send a message, book a call, or reach me directly.' : 'Send a message here, or reach me directly.'}
+        {t('ui.contact.lead')} {bookingUrl ? t('ui.contact.lead_booking') : t('ui.contact.lead_no_booking')}
       </p>
       <ul class="direct">
         <li>
@@ -26,7 +27,7 @@ const bookingUrl = profile.bookingUrl.trim();
         <li>
           <a href={profile.linkedin} target="_blank" rel="me noopener">
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" /><path d="M8 10.5V16M8 7.8v.2M12 16v-3.2c0-1.4 1-2.3 2.2-2.3s2 .9 2 2.3V16M12 10.5V16" /></svg>
-            {profile.linkedinLabel}<span class="sr-only"> (opens in a new tab)</span>
+            {profile.linkedinLabel}<span class="sr-only"> {t('ui.common.new_tab')}</span>
           </a>
         </li>
         <li>
@@ -41,13 +42,13 @@ const bookingUrl = profile.bookingUrl.trim();
         bookingUrl && (
           <div class="book">
             <div class="book-text">
-              <p class="book-title">Prefer to talk?</p>
+              <p class="book-title">{t('ui.contact.book_title')}</p>
               <p class="book-sub">{profile.bookingNote}</p>
             </div>
             <a class="btn btn-primary book-btn" href={bookingUrl} target="_blank" rel="noopener" data-track="book-call">
               <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5" /><path d="M3.5 10h17M8 3v4M16 3v4M9 14.5l2 2 4-4" /></svg>
-              Book a call
-              <span class="sr-only"> (opens in a new tab)</span>
+              {t('ui.contact.book_cta')}
+              <span class="sr-only"> {t('ui.common.new_tab')}</span>
             </a>
           </div>
         )
@@ -62,30 +63,37 @@ const bookingUrl = profile.bookingUrl.trim();
       data-contact-form
       data-key={key}
       data-email={profile.email}
+      data-msg-invalid={t('ui.contact.msg_invalid')}
+      data-msg-opening={t('ui.contact.msg_opening')}
+      data-msg-sending={t('ui.contact.msg_sending')}
+      data-msg-sent={t('ui.contact.msg_sent')}
+      data-msg-failed={t('ui.contact.msg_failed')}
+      data-msg-send={t('ui.contact.send')}
+      data-mail-subject={t('ui.contact.mailto_subject')}
       novalidate
     >
       {key && <input type="hidden" name="access_key" value={key} />}
-      <input type="hidden" name="subject" value="New message from your CV website" />
-      <input type="hidden" name="from_name" value="CV website" />
+      <input type="hidden" name="subject" value={t('ui.contact.mail_subject')} />
+      <input type="hidden" name="from_name" value={t('ui.contact.mail_from')} />
       <!-- Honeypot: real visitors never see or fill this. -->
       <input type="checkbox" name="botcheck" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
 
       <div class="field">
-        <label for="cf-name">Your name</label>
+        <label for="cf-name">{t('ui.contact.name')}</label>
         <input id="cf-name" name="name" type="text" autocomplete="name" required maxlength="120" />
       </div>
       <div class="field">
-        <label for="cf-email">Your email</label>
+        <label for="cf-email">{t('ui.contact.email')}</label>
         <input id="cf-email" name="email" type="email" autocomplete="email" required maxlength="200" />
       </div>
       <div class="field">
-        <label for="cf-message">Message</label>
+        <label for="cf-message">{t('ui.contact.message')}</label>
         <textarea id="cf-message" name="message" rows="6" required maxlength="5000"></textarea>
       </div>
 
       <div class="row">
         <button class="btn btn-primary submit" type="submit">
-          <span class="label">Send message</span>
+          <span class="label">{t('ui.contact.send')}</span>
           <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-5-5 5 5-5 5" /></svg>
         </button>
         <p class="status" role="status" aria-live="polite" data-status></p>
@@ -199,6 +207,8 @@ const bookingUrl = profile.bookingUrl.trim();
     const label = button.querySelector<HTMLElement>('.label')!;
     const key = form.dataset.key;
     const email = form.dataset.email!;
+    // Messages come from the database through data-* attributes on the form.
+    const msg = form.dataset;
 
     const say = (text: string, tone?: 'ok' | 'error') => {
       status.textContent = text;
@@ -218,7 +228,7 @@ const bookingUrl = profile.bookingUrl.trim();
         if (!ok && !firstInvalid) firstInvalid = f;
       }
       if (firstInvalid) {
-        say('Please fill in your name, a valid email and a message.', 'error');
+        say(msg.msgInvalid!, 'error');
         firstInvalid.focus();
         return;
       }
@@ -228,15 +238,15 @@ const bookingUrl = profile.bookingUrl.trim();
 
       if (!key) {
         // No form service configured: hand the message to the visitor's email app.
-        const subject = encodeURIComponent(`Message from ${data.get('name')}`);
+        const subject = encodeURIComponent(msg.mailSubject!.replace('{name}', String(data.get('name'))));
         const body = encodeURIComponent(`${data.get('message')}\n\n${data.get('name')} · ${data.get('email')}`);
         window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
-        say('Opening your email app…');
+        say(msg.msgOpening!);
         return;
       }
 
       button.disabled = true;
-      label.textContent = 'Sending…';
+      label.textContent = msg.msgSending!;
       say('');
       try {
         const res = await fetch('https://api.web3forms.com/submit', {
@@ -248,13 +258,13 @@ const bookingUrl = profile.bookingUrl.trim();
         if (!res.ok || json.success === false) throw new Error(json.message || res.statusText);
         form.reset();
         fields.forEach((f) => f.removeAttribute('aria-invalid'));
-        say("Thanks! Your message is on its way, and I'll get back to you soon.", 'ok');
+        say(msg.msgSent!, 'ok');
         trackEvent('contact-form-sent', 'Contact form sent');
       } catch {
-        say(`Sorry, that didn't send. Please email me at ${email}.`, 'error');
+        say(msg.msgFailed!.replace('{email}', email), 'error');
       } finally {
         button.disabled = false;
-        label.textContent = 'Send message';
+        label.textContent = msg.msgSend!;
       }
     });
   }

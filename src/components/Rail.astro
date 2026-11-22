@@ -1,4 +1,6 @@
 ---
+import { getContent } from '../data/content';
+const { t } = getContent(Astro.currentLocale);
 interface Props {
   id: string;
   title: string;
@@ -16,7 +18,7 @@ const { id, title, meta, hint = false, headingLevel: H = 'h2' } = Astro.props;
     {
       hint && (
         <p class="hint" aria-hidden="true">
-          <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> browse like a TV remote
+          <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> {t('ui.rail.hint')}
         </p>
       )
     }

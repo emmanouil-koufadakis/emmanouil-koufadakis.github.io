@@ -1,4 +1,6 @@
 ---
+import { getContent } from '../data/content';
+const { t } = getContent(Astro.currentLocale);
 /**
  * Hero artwork inspired by the LinkedIn cover: an indigo "engineering" scene
  * with circuit traces, floating code / flowchart windows and a grid of the
@@ -66,7 +68,7 @@ const tiles = [
 <span class="k">end function</span></pre>
   </div>
 
-  <p class="label">Software Engineering</p>
+  <p class="label">{t('ui.hero.scene_label')}</p>
   <ul class="tiles">
     {tiles.map((t) => <li class={t.cls}><span>{t.label}</span></li>)}
   </ul>

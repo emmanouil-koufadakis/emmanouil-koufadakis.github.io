@@ -3,7 +3,8 @@
  * Roku MVVM framework results as before/after bars, indexed so "before" = 100.
  * A range (e.g. 30–40%) shows as a solid bar plus a lighter band for the spread.
  */
-import { mvvmImpact } from '../data/cv';
+import { getContent } from '../data/content';
+const { mvvmImpact, t } = getContent(Astro.currentLocale);
 
 interface Props {
   /** Show a link to the case study (home page). */
@@ -18,8 +19,8 @@ const metrics = mvvmImpact.map((m) => {
 ---
 <figure class="impact">
   <figcaption>
-    <h3>Roku MVVM framework impact</h3>
-    <span class="note">Before = 100</span>
+    <h3>{t('ui.impact.title')}</h3>
+    <span class="note">{t('ui.impact.note')}</span>
   </figcaption>
   <div class="metrics">
     {
@@ -31,11 +32,11 @@ const metrics = mvvmImpact.map((m) => {
           </div>
           <div class="bar before">
             <span class="fill" style="--w: 100%" />
-            <span class="tag">Before · 100</span>
+            <span class="tag">{t('ui.impact.before')}</span>
           </div>
           <div class="bar after">
             <span class="fill" style={`--w: ${m.hi}%; --solid: ${m.solid}%`} />
-            <span class="tag">After · {m.afterText}</span>
+            <span class="tag">{t('ui.impact.after', { value: m.afterText })}</span>
           </div>
         </div>
       ))
@@ -44,7 +45,7 @@ const metrics = mvvmImpact.map((m) => {
   {
     link && (
       <a class="more" href="/work/roku-mvvm-framework/">
-        Read the case study <span aria-hidden="true">→</span>
+        {t('ui.common.read_case_study')} <span aria-hidden="true">→</span>
       </a>
     )
   }

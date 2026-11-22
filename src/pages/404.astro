@@ -1,15 +1,17 @@
 ---
+import { getContent } from '../data/content';
+const { t } = getContent(Astro.currentLocale);
 import Base from '../layouts/Base.astro';
 ---
-<Base title="Page not found" noindex>
+<Base title={t('ui.notfound.page_title')} noindex>
   <section class="nf">
     <div class="wrap">
-      <p class="eyebrow">Error 404</p>
-      <h1>This title isn't available.</h1>
-      <p class="msg">It may have been removed, or the link might be wrong. Plenty more to watch on the home screen.</p>
+      <p class="eyebrow">{t('ui.notfound.eyebrow')}</p>
+      <h1>{t('ui.notfound.title')}</h1>
+      <p class="msg">{t('ui.notfound.message')}</p>
       <div class="cta">
-        <a class="btn btn-primary" href="/">Back to home</a>
-        <a class="btn btn-ghost" href="/#experience">Browse experience</a>
+        <a class="btn btn-primary" href="/">{t('ui.notfound.home')}</a>
+        <a class="btn btn-ghost" href="/#experience">{t('ui.hero.browse')}</a>
       </div>
     </div>
   </section>

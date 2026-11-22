@@ -1,8 +1,9 @@
 ---
 import HeroScene from './HeroScene.astro';
-import { profile } from '../data/cv';
+import { getContent } from '../data/content';
+const { profile, t } = getContent(Astro.currentLocale);
 
-const platforms = ['Roku', 'Apple TV', 'PlayStation', 'Xbox', 'Windows', 'Web'];
+const [firstName, ...lastNames] = profile.name.split(' ');
 ---
 <section class="hero" aria-labelledby="hero-title">
   <div class="hero-art" aria-hidden="true">
@@ -12,19 +13,19 @@ const platforms = ['Roku', 'Apple TV', 'PlayStation', 'Xbox', 'Windows', 'Web'];
   <div class="wrap hero-inner">
     <div class="hero-copy">
       <p class="eyebrow kicker">
-        <span class="featured">Featured</span>
+        <span class="featured">{t('ui.hero.featured')}</span>
         <span>{profile.headline}</span>
       </p>
 
       <h1 id="hero-title">
-        <span>Emmanouil</span>
-        <span>Koufadakis</span>
+        <span>{firstName}</span>
+        <span>{lastNames.join(' ')}</span>
       </h1>
 
       <p class="meta-row">
-        <span class="hd">MSc</span>
-        <span>2007 – Now</span>
-        <span class="platforms">{platforms.join(' · ')}</span>
+        <span class="hd">{profile.credentials}</span>
+        <span>{t('ui.hero.career_span')}</span>
+        <span class="platforms">{t('ui.hero.platforms')}</span>
       </p>
 
       <p class="pitch">{profile.pitch}</p>
@@ -32,16 +33,16 @@ const platforms = ['Roku', 'Apple TV', 'PlayStation', 'Xbox', 'Windows', 'Web'];
       <div class="cta">
         <a class="btn btn-primary" href="#experience">
           <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M7 4.8v14.4a.8.8 0 0 0 1.2.7l11.3-7.2a.8.8 0 0 0 0-1.4L8.2 4.1A.8.8 0 0 0 7 4.8Z" /></svg>
-          Browse experience
+          {t('ui.hero.browse')}
         </a>
         <a class="btn btn-ghost" href={profile.cvFile} download>
           <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0 4.5-4.5M12 15l-4.5-4.5M5 19.5h14" /></svg>
-          Download CV
+          {t('ui.common.download_cv')}
         </a>
-        <a class="btn btn-ghost" href="#contact">Get in touch</a>
+        <a class="btn btn-ghost" href="#contact">{t('ui.common.get_in_touch')}</a>
       </div>
 
-      <ul class="status" aria-label="Availability">
+      <ul class="status" aria-label={t('ui.hero.availability_label')}>
         <li class="chip"><span class="live-dot" aria-hidden="true"></span>{profile.availability}</li>
         <li class="chip">{profile.workPreference}</li>
         <li class="chip">{profile.location}</li>

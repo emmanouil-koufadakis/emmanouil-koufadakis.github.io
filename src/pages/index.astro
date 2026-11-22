@@ -1,5 +1,4 @@
 ---
-import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import Hero from '../components/Hero.astro';
 import Rail from '../components/Rail.astro';
@@ -15,32 +14,32 @@ import Skills from '../components/Skills.astro';
 import Certifications from '../components/Certifications.astro';
 import Credits from '../components/Credits.astro';
 import Contact from '../components/Contact.astro';
-import { clients, experience, posts, recommendations } from '../data/cv';
+import { getContent } from '../data/content';
+const { caseStudies, clients, experience, posts, recommendations, t } = getContent(Astro.currentLocale);
 
-const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
 // Each client tile opens the most recent role that client appears in.
 const roleFor = (name: string) => experience.find((r) => r.clients.includes(name))?.id;
 ---
 <Base>
   <Hero />
 
-  <Rail id="experience" title="Experience" meta={`${experience.length} roles · 2007 – now`} hint>
+  <Rail id="experience" title={t('ui.rails.experience')} meta={t('ui.rails.experience_meta', { count: experience.length })} hint>
     {experience.map((role) => <RoleCard role={role} />)}
   </Rail>
 
-  <Rail id="work" title="Case studies" meta="Selected projects">
-    {work.map((entry) => <PosterCard entry={entry} />)}
+  <Rail id="work" title={t('ui.rails.work')} meta={t('ui.rails.work_meta')}>
+    {caseStudies.map((cs) => <PosterCard cs={cs} />)}
   </Rail>
 
-  <Rail id="reviews" title="What colleagues say" meta={`${recommendations.length} LinkedIn recommendations`}>
+  <Rail id="reviews" title={t('ui.rails.reviews')} meta={t('ui.rails.reviews_meta', { count: recommendations.length })}>
     {recommendations.map((rec) => <ReviewCard rec={rec} />)}
   </Rail>
 
-  <Rail id="clients" title="Brands I've built for" meta={`${clients.length} clients`}>
+  <Rail id="clients" title={t('ui.rails.clients')} meta={t('ui.rails.clients_meta', { count: clients.length })}>
     {clients.map((c) => <ClientTile client={c} roleId={roleFor(c.name)} />)}
   </Rail>
 
-  <Rail id="posts" title="Posts & articles" meta={`${posts.length} ${posts.length === 1 ? 'post' : 'posts'} · shared on LinkedIn`}>
+  <Rail id="posts" title={t('ui.rails.posts')} meta={t(posts.length === 1 ? 'ui.rails.posts_meta_one' : 'ui.rails.posts_meta', { count: posts.length })}>
     {posts.map((p) => <PostCard post={p} />)}
   </Rail>
 
