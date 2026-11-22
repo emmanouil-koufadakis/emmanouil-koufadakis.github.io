@@ -4,7 +4,7 @@
  * A range (e.g. 30–40%) shows as a solid bar plus a lighter band for the spread.
  */
 import { getContent } from '../data/content';
-const { mvvmImpact, t } = getContent(Astro.currentLocale);
+const { mvvmImpact, t, href } = getContent(Astro.currentLocale);
 
 interface Props {
   /** Show a link to the case study (home page). */
@@ -44,7 +44,7 @@ const metrics = mvvmImpact.map((m) => {
   </div>
   {
     link && (
-      <a class="more" href="/work/roku-mvvm-framework/">
+      <a class="more" href={href('/work/roku-mvvm-framework/')}>
         {t('ui.common.read_case_study')} <span aria-hidden="true">→</span>
       </a>
     )

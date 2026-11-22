@@ -1,7 +1,9 @@
 /**
  * Renders the downloadable CV PDF and the social preview image:
- *   public/Emmanouil_Koufadakis_CV.pdf  ← /cv
- *   public/og.png                       ← /og
+ *   public/Emmanouil_Koufadakis_CV.pdf     ← /cv
+ *   public/og.png                          ← /og
+ *   public/Emmanouil_Koufadakis_CV_EL.pdf  ← /el/cv   (Greek)
+ *   public/og-el.png                       ← /el/og   (Greek)
  *
  * Usage:
  *   CV_PHONE="07…" SITE_URL="https://<user>.github.io" npm run render:assets
@@ -25,17 +27,24 @@ try {
   browser = await chromium.launch({ channel: 'chrome' });
   const base = `http://127.0.0.1:${port}`;
 
-  const cv = await browser.newPage();
-  await cv.goto(`${base}/cv/`, { waitUntil: 'networkidle' });
-  await cv.evaluate(() => document.fonts.ready);
-  await cv.pdf({ path: out('Emmanouil_Koufadakis_CV.pdf'), preferCSSPageSize: true, printBackground: true });
-  console.log('✓ public/Emmanouil_Koufadakis_CV.pdf');
+  // English at the root, Greek under /el/.
+  const versions = [
+    { path: '', pdf: 'Emmanouil_Koufadakis_CV.pdf', og: 'og.png' },
+    { path: '/el', pdf: 'Emmanouil_Koufadakis_CV_EL.pdf', og: 'og-el.png' },
+  ];
+  for (const v of versions) {
+    const cv = await browser.newPage();
+    await cv.goto(`${base}${v.path}/cv/`, { waitUntil: 'networkidle' });
+    await cv.evaluate(() => document.fonts.ready);
+    await cv.pdf({ path: out(v.pdf), preferCSSPageSize: true, printBackground: true });
+    console.log(`✓ public/${v.pdf}`);
 
-  const og = await browser.newPage({ viewport: { width: 1200, height: 630 } });
-  await og.goto(`${base}/og/`, { waitUntil: 'networkidle' });
-  await og.evaluate(() => document.fonts.ready);
-  await og.screenshot({ path: out('og.png'), clip: { x: 0, y: 0, width: 1200, height: 630 } });
-  console.log('✓ public/og.png');
+    const og = await browser.newPage({ viewport: { width: 1200, height: 630 } });
+    await og.goto(`${base}${v.path}/og/`, { waitUntil: 'networkidle' });
+    await og.evaluate(() => document.fonts.ready);
+    await og.screenshot({ path: out(v.og), clip: { x: 0, y: 0, width: 1200, height: 630 } });
+    console.log(`✓ public/${v.og}`);
+  }
 } finally {
   await browser?.close();
   await server.stop();

@@ -1,6 +1,6 @@
 ---
 import { getContent } from '../data/content';
-const { t } = getContent(Astro.currentLocale);
+const { t, href } = getContent(Astro.currentLocale);
 import Base from '../layouts/Base.astro';
 ---
 <Base title={t('ui.notfound.page_title')} noindex>
@@ -10,8 +10,8 @@ import Base from '../layouts/Base.astro';
       <h1>{t('ui.notfound.title')}</h1>
       <p class="msg">{t('ui.notfound.message')}</p>
       <div class="cta">
-        <a class="btn btn-primary" href="/">{t('ui.notfound.home')}</a>
-        <a class="btn btn-ghost" href="/#experience">{t('ui.hero.browse')}</a>
+        <a class="btn btn-primary" href={href('/')}>{t('ui.notfound.home')}</a>
+        <a class="btn btn-ghost" href={href('/#experience')}>{t('ui.hero.browse')}</a>
       </div>
     </div>
   </section>

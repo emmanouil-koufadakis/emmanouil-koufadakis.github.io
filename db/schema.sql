@@ -5,7 +5,7 @@
 -- texts: every piece of human-readable text, English and Greek side by side.
 --   key   dotted path, e.g. "role.roku-lead.title" or "ui.hero.download_cv"
 --   en    English (required)
---   el    Greek (optional; when empty the English text is used)
+--   el    Greek (when empty, the Greek site shows the English text)
 --   notes optional hint for editing or translating
 -- Lists use numbered keys: "role.roku-lead.highlight.1", ".2", ...
 -- Text may contain {placeholders} that the site fills in, e.g. {count}.

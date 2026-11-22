@@ -22,6 +22,7 @@ All colours use `light-dark()`; the theme toggle only sets `color-scheme` via `d
 ## Type
 - **Display:** Bricolage Grotesque (variable): headings, card titles, client tiles.
 - **Body:** Hanken Grotesk (variable).
+- **Greek pages (/el/):** Commissioner (variable) for headings and body, since Bricolage and Hanken have no Greek letters. JetBrains Mono already covers Greek.
 - **Meta:** JetBrains Mono, uppercase, tracked +0.14em: eyebrows, periods, badges.
 - Scale is fluid with `clamp()`; hero name tops out around 5.5rem.
 

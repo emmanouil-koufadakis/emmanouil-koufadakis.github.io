@@ -1,0 +1,8 @@
+---
+import type { GetStaticPaths } from 'astro';
+import CaseStudyPage from '../../../views/CaseStudyPage.astro';
+import { getContent } from '../../../data/content';
+
+export const getStaticPaths = (() => getContent('en').caseStudies.map((cs) => ({ params: { slug: cs.slug } }))) satisfies GetStaticPaths;
+---
+<CaseStudyPage slug={Astro.params.slug} />

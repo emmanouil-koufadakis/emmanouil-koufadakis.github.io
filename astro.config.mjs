@@ -28,10 +28,19 @@ function reloadOnDatabaseChange() {
 export default defineConfig({
   site,
   trailingSlash: 'ignore',
+  // English lives at the root, Greek under /el/. Astro.currentLocale tells
+  // components which language to read from the database.
+  i18n: {
+    locales: ['en', 'el'],
+    defaultLocale: 'en',
+    routing: { prefixDefaultLocale: false },
+  },
   integrations: [
     sitemap({
       // The /cv and /og pages only exist to render the PDF and social image.
       filter: (page) => !/\/(cv|og)\/?$/.test(page),
+      // Lists each page with its other-language version (hreflang).
+      i18n: { defaultLocale: 'en', locales: { en: 'en-GB', el: 'el-GR' } },
     }),
   ],
   env: {

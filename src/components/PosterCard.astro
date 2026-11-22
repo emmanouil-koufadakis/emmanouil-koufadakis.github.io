@@ -1,6 +1,6 @@
 ---
 import { getContent, type CaseStudy } from '../data/content';
-const { platformStyle } = getContent(Astro.currentLocale);
+const { platformStyle, href } = getContent(Astro.currentLocale);
 import Shine from './Shine.astro';
 
 interface Props {
@@ -9,7 +9,7 @@ interface Props {
 const { cs: d } = Astro.props;
 ---
 <li>
-  <a href={`/work/${d.slug}/`} class="poster" data-rail-item>
+  <a href={href(`/work/${d.slug}/`)} class="poster" data-rail-item>
     <div class="art-wrap art" style={`--h: ${d.hue}`}>
       <span class="badge">{platformStyle[d.platform].badge}</span>
       <div class="title-block">
