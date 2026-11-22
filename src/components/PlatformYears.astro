@@ -1,6 +1,7 @@
 ---
 /** Time on each platform, worked out from the role dates in cv.ts. */
-import { experience, formatDuration, guidePlatforms, platformStyle, roleMonths } from '../data/cv';
+import { getContent } from '../data/content';
+const { experience, formatDuration, guidePlatforms, platformStyle, roleMonths, t } = getContent(Astro.currentLocale);
 
 const rows = guidePlatforms
   .map(({ platform, label }) => ({
@@ -13,8 +14,8 @@ const max = Math.max(...rows.map((r) => r.months));
 ---
 <figure class="card">
   <figcaption>
-    <h3>Time on each platform</h3>
-    <span class="note">From role dates</span>
+    <h3>{t('ui.years.title')}</h3>
+    <span class="note">{t('ui.years.note')}</span>
   </figcaption>
   <dl class="bars">
     {

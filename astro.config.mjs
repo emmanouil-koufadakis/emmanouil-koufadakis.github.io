@@ -1,6 +1,5 @@
 // @ts-check
 import { defineConfig, envField } from 'astro/config';
-import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 
@@ -8,11 +7,28 @@ import tailwindcss from '@tailwindcss/vite';
 // https://<owner>.github.io; locally it falls back to the dev server.
 const site = process.env.SITE_URL || 'http://localhost:4321';
 
+// All text lives in db/content.db. While the dev server runs, saving the
+// database (e.g. from DB Browser for SQLite) reloads the page with the new text.
+/** @returns {import('vite').Plugin} */
+function reloadOnDatabaseChange() {
+  return {
+    name: 'reload-on-database-change',
+    configureServer(server) {
+      const db = new URL('./db/content.db', import.meta.url).pathname;
+      server.watcher.add(db);
+      server.watcher.on('change', (file) => {
+        if (file !== db) return;
+        server.moduleGraph.invalidateAll();
+        server.ws.send({ type: 'full-reload' });
+      });
+    },
+  };
+}
+
 export default defineConfig({
   site,
   trailingSlash: 'ignore',
   integrations: [
-    mdx(),
     sitemap({
       // The /cv and /og pages only exist to render the PDF and social image.
       filter: (page) => !/\/(cv|og)\/?$/.test(page),
@@ -28,6 +44,6 @@ export default defineConfig({
     },
   },
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss(), reloadOnDatabaseChange()],
   },
 });

@@ -1,16 +1,15 @@
 ---
-import type { CollectionEntry } from 'astro:content';
-import { platformStyle } from '../data/cv';
+import { getContent, type CaseStudy } from '../data/content';
+const { platformStyle } = getContent(Astro.currentLocale);
 import Shine from './Shine.astro';
 
 interface Props {
-  entry: CollectionEntry<'work'>;
+  cs: CaseStudy;
 }
-const { entry } = Astro.props;
-const d = entry.data;
+const { cs: d } = Astro.props;
 ---
 <li>
-  <a href={`/work/${entry.id}/`} class="poster" data-rail-item>
+  <a href={`/work/${d.slug}/`} class="poster" data-rail-item>
     <div class="art-wrap art" style={`--h: ${d.hue}`}>
       <span class="badge">{platformStyle[d.platform].badge}</span>
       <div class="title-block">

@@ -1,16 +1,17 @@
 ---
-import { certifications, education, languages, profile, volunteering } from '../data/cv';
+import { getContent } from '../data/content';
+const { certifications, education, languages, profile, volunteering, t } = getContent(Astro.currentLocale);
 ---
 <section id="about" class="synopsis" aria-labelledby="about-title">
   <div class="wrap grid">
     <div class="copy">
-      <p class="eyebrow">Synopsis</p>
-      <h2 id="about-title" class="section-title">Ten years of apps for the big screen</h2>
+      <p class="eyebrow">{t('ui.synopsis.eyebrow')}</p>
+      <h2 id="about-title" class="section-title">{t('ui.synopsis.title')}</h2>
       {profile.about.map((p) => <p class="para">{p}</p>)}
     </div>
-    <aside class="facts" aria-label="Education and languages">
+    <aside class="facts" aria-label={t('ui.synopsis.facts_label')}>
       <div class="block">
-        <h3 class="eyebrow">Education</h3>
+        <h3 class="eyebrow">{t('ui.synopsis.education')}</h3>
         <ul>
           {
             education.map((e) => (
@@ -20,20 +21,20 @@ import { certifications, education, languages, profile, volunteering } from '../
                   {e.school} · {e.year}
                   {e.detail && ` · ${e.detail}`}
                 </span>
-                {e.dissertation && <span class="diss">Dissertation: {e.dissertation}</span>}
+                {e.dissertation && <span class="diss">{t('ui.common.dissertation')} {e.dissertation}</span>}
               </li>
             ))
           }
         </ul>
       </div>
       <div class="block">
-        <h3 class="eyebrow">Certifications</h3>
+        <h3 class="eyebrow">{t('ui.certs.eyebrow')}</h3>
         <a class="jump" href="#certifications">
-          {certifications.length} certificates, including Anthropic <span aria-hidden="true">↓</span>
+          {t('ui.synopsis.cert_jump', { count: certifications.length })} <span aria-hidden="true">↓</span>
         </a>
       </div>
       <div class="block">
-        <h3 class="eyebrow">Languages</h3>
+        <h3 class="eyebrow">{t('ui.synopsis.languages')}</h3>
         <ul class="langs">
           {
             languages.map((l) => (
@@ -46,7 +47,7 @@ import { certifications, education, languages, profile, volunteering } from '../
         </ul>
       </div>
       <div class="block">
-        <h3 class="eyebrow">Volunteering</h3>
+        <h3 class="eyebrow">{t('ui.synopsis.volunteering')}</h3>
         <ul>
           {
             volunteering.map((v) => (

@@ -5,7 +5,8 @@
  * Blocks open the same role dialogs as the Experience rail. On narrow screens
  * the grid scrolls sideways with the channel column pinned, like a real EPG.
  */
-import { currentMonthIndex, experience, formatPeriod, guidePlatforms, monthIndex, platformStyle } from '../data/cv';
+import { getContent } from '../data/content';
+const { currentMonthIndex, experience, formatPeriod, guidePlatforms, monthIndex, platformStyle, t } = getContent(Astro.currentLocale);
 import PlatformYears from './PlatformYears.astro';
 import ImpactChart from './ImpactChart.astro';
 
@@ -35,7 +36,7 @@ const rows = guidePlatforms.map(({ platform, label }) => ({
         role: r,
         left: pct(from),
         width: width(from, to),
-        level: /^(Lead|Senior|Junior)/.exec(r.title)?.[1] ?? 'Developer',
+        level: r.level,
         sub: r.clients.slice(0, 2).join(', ') || r.company,
       };
     }),
@@ -43,9 +44,9 @@ const rows = guidePlatforms.map(({ platform, label }) => ({
 ---
 <section id="guide" class="guide-sec" aria-labelledby="guide-title">
   <div class="wrap">
-    <p class="eyebrow">Programme guide</p>
-    <h2 id="guide-title" class="section-title">Career at a glance</h2>
-    <p class="intro">Each platform is a channel and each role a show. Select one for the details.</p>
+    <p class="eyebrow">{t('ui.guide.eyebrow')}</p>
+    <h2 id="guide-title" class="section-title">{t('ui.guide.title')}</h2>
+    <p class="intro">{t('ui.guide.intro')}</p>
 
     <div class="panel">
       <div class="scroller" data-guide-scroller>
@@ -84,7 +85,7 @@ const rows = guidePlatforms.map(({ platform, label }) => ({
             ))
           }
 
-          <div class="now-layer" aria-hidden="true"><div class="now-line"><span>Now</span></div></div>
+          <div class="now-layer" aria-hidden="true"><div class="now-line"><span>{t('ui.guide.now')}</span></div></div>
         </div>
       </div>
     </div>

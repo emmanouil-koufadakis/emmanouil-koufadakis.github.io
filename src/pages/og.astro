@@ -2,10 +2,12 @@
 /** 1200×630 social preview. `npm run render:assets` screenshots it to public/og.png. */
 import '../styles/global.css';
 import Monogram from '../components/Monogram.astro';
-import { profile } from '../data/cv';
+import { getContent } from '../data/content';
+const { profile, t } = getContent(Astro.currentLocale);
 
+const [firstName, ...lastNames] = profile.name.split(' ');
 const tiles = [
-  { label: 'ROKU', years: '2020–now', h: 300 },
+  { label: 'ROKU', years: `2020–${t('ui.date.now')}`, h: 300 },
   { label: 'PS4', years: '2016–19', h: 258 },
   { label: 'tvOS', years: '2019–20', h: 235 },
   { label: 'UWP', years: '2012–16', h: 200 },
@@ -16,14 +18,14 @@ const tiles = [
   <head>
     <meta charset="utf-8" />
     <meta name="robots" content="noindex" />
-    <title>OG image</title>
+    <title>{t('ui.og.page_title')}</title>
   </head>
   <body>
     <div class="og">
       <div class="left">
-        <div class="brand"><Monogram size={56} uid="og" /><span class="eyebrow">Featured · {profile.headline}</span></div>
-        <h1>Emmanouil<br />Koufadakis</h1>
-        <p class="pitch">Roku &amp; OTT apps for BBC, Channel 5, Showtime, ESPN and more.</p>
+        <div class="brand"><Monogram size={56} uid="og" /><span class="eyebrow">{t('ui.hero.featured')} · {profile.headline}</span></div>
+        <h1>{firstName}<br />{lastNames.join(' ')}</h1>
+        <p class="pitch">{t('ui.og.pitch')}</p>
         <div class="stats">
           {profile.stats.map((s) => <div><strong>{s.value}</strong><span>{s.label}</span></div>)}
         </div>

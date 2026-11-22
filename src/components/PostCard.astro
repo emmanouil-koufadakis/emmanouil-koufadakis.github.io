@@ -1,18 +1,19 @@
 ---
 import Shine from './Shine.astro';
-import { formatMonth, type Post } from '../data/cv';
+import { getContent, type Post } from '../data/content';
+const { formatMonth, t } = getContent(Astro.currentLocale);
 
 interface Props {
   post: Post;
 }
 const { post } = Astro.props;
 const when = formatMonth(post.date.slice(0, 7));
-const cta = post.kind === 'LinkedIn post' ? 'Read on LinkedIn' : 'Read the article';
+const cta = t(`ui.post.cta.${post.kind}`);
 ---
 <li>
   <a class="post" href={post.url} target="_blank" rel="noopener" data-rail-item data-track={`post/${post.id}`}>
     <div class="banner art" style={`--h: ${post.hue}`}>
-      <span class="badge">{post.kind}</span>
+      <span class="badge">{post.kindLabel}</span>
       <div class="title-block">
         <h3>{post.title}</h3>
         {post.subtitle && <p class="sub">{post.subtitle}</p>}
@@ -24,11 +25,11 @@ const cta = post.kind === 'LinkedIn post' ? 'Read on LinkedIn' : 'Read the artic
         <time datetime={post.date}>{when}</time>{post.format && ` · ${post.format}`}
       </p>
       <p class="summary">{post.summary}</p>
-      <ul class="topics" aria-label="Topics">
+      <ul class="topics" aria-label={t('ui.common.topics')}>
         {post.topics.map((t) => <li>{t}</li>)}
       </ul>
       <span class="more">
-        {cta}<span class="sr-only"> (opens in a new tab)</span> <span aria-hidden="true">↗</span>
+        {cta}<span class="sr-only"> {t('ui.common.new_tab')}</span> <span aria-hidden="true">↗</span>
       </span>
     </div>
   </a>

@@ -1,11 +1,12 @@
 ---
 import Shine from './Shine.astro';
-import { certifications } from '../data/cv';
+import { getContent } from '../data/content';
+const { certifications, t } = getContent(Astro.currentLocale);
 ---
 <section id="certifications" class="certs" aria-labelledby="certs-title">
   <div class="wrap">
-    <p class="eyebrow">Certifications</p>
-    <h2 id="certs-title" class="section-title">Always learning</h2>
+    <p class="eyebrow">{t('ui.certs.eyebrow')}</p>
+    <h2 id="certs-title" class="section-title">{t('ui.certs.title')}</h2>
     <ul class="grid" data-shine-sequence>
       {
         certifications.map((c) => (
@@ -17,19 +18,19 @@ import { certifications } from '../data/cv';
             <div class="body">
               <h3>{c.name}</h3>
               <p class="meta">
-                {c.issuer} · Issued {c.date}
+                {c.issuer} · {t('ui.certs.issued', { date: c.date })}
               </p>
-              <ul class="topics" aria-label="Topics">
+              <ul class="topics" aria-label={t('ui.common.topics')}>
                 {c.topics.map((t) => (
                   <li class="chip">{t}</li>
                 ))}
               </ul>
               {c.url && (
                 <a class="cred" href={c.url} target="_blank" rel="noopener">
-                  View credential
+                  {t('ui.certs.view')}
                   <span class="sr-only">
                     {' '}
-                    for {c.name} (opens in a new tab)
+                    {t('ui.certs.view_sr', { name: c.name })}
                   </span>
                   <span aria-hidden="true"> ↗</span>
                 </a>

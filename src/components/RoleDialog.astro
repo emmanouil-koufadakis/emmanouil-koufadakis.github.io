@@ -1,6 +1,7 @@
 ---
 import Shine from './Shine.astro';
-import { formatPeriod, platformStyle, type Role } from '../data/cv';
+import { getContent, type Role } from '../data/content';
+const { formatPeriod, platformStyle, t } = getContent(Astro.currentLocale);
 
 interface Props {
   role: Role;
@@ -14,7 +15,7 @@ const ps = platformStyle[role.platform];
       <!-- First child so the close button paints above the shine. -->
       <Shine />
       <form method="dialog">
-        <button class="close" aria-label="Close details">
+        <button class="close" aria-label={t('ui.role.close')}>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
         </button>
       </form>
@@ -30,7 +31,7 @@ const ps = platformStyle[role.platform];
       {
         role.clients.length > 0 && (
           <div class="clients">
-            <span class="eyebrow">Clients</span>
+            <span class="eyebrow">{t('ui.role.clients')}</span>
             <ul>
               {role.clients.map((c) => (
                 <li class="chip">{c}</li>
@@ -42,7 +43,7 @@ const ps = platformStyle[role.platform];
       {
         role.caseStudy && (
           <a class="btn btn-primary cs-link" href={`/work/${role.caseStudy}/`}>
-            Read the case study
+            {t('ui.common.read_case_study')}
             <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-5-5 5 5-5 5" /></svg>
           </a>
         )

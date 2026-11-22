@@ -13,13 +13,26 @@ npm run check      # type-check
 
 ## Update the content
 
-| What | Where |
+All text on the site, the PDF CV and the social image lives in one SQLite database: **`db/content.db`**. The site reads it when it is built; nothing reads it in visitors' browsers.
+
+Open it with any SQLite app, for example [DB Browser for SQLite](https://sqlitebrowser.org) (free) or TablePlus:
+
+| What | Where in the database |
 |---|---|
-| Name, pitch, about text, stats, contact links, availability | `src/data/cv.ts` → `profile` |
-| Roles (cards, dialogs, full CV list, PDF) | `src/data/cv.ts` → `experience` |
-| Client tiles, skills, education, languages | `src/data/cv.ts` |
-| Case studies | `src/content/work/*.mdx` (one file per study) |
+| Any wording on the site: headings, buttons, role highlights, case studies, diagrams | `texts` table: `key`, `en` (English), `el` (Greek, optional), `notes` |
+| Role dates, platforms, which roles appear on the PDF | `roles`, `role_clients` |
+| Client tiles, skills, education, certifications, languages, volunteering | `clients`, `skill_groups`, `education`, `certifications`, `languages`, `volunteering` |
+| Recommendations, posts, case-study settings, hero stats, impact chart | `recommendations`, `posts`, `case_studies`, `stats`, `impact` |
+| Email, LinkedIn, booking link, PDF file name | `settings` |
 | Your photo | Save it as `src/assets/headshot.jpg` (or .png/.webp/.avif). It appears as a round avatar next to your name in the top bar, in place of the "EK" monogram. |
+
+Tips:
+
+- Text keys are readable dotted paths, e.g. `role.roku-lead.title` or `ui.hero.browse`. Lists use numbered keys (`role.roku-lead.highlight.1`, `.2`…); to add an item, add the next number.
+- `{count}`, `{name}`, `{email}` and similar placeholders are filled in by the site; keep them in both languages.
+- Case study bodies (`case.<slug>.body`) are Markdown. A line `{{impact-chart}}` places the impact chart.
+- The table structure and what each column means are documented in `db/schema.sql`.
+- While `npm run dev` is running, saving the database reloads the page with the new text. A missing key stops the build with its name, so typos are caught before publishing.
 
 After changing content, regenerate the PDF and social image:
 

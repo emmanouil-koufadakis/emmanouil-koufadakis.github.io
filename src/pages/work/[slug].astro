@@ -1,36 +1,33 @@
 ---
 import type { GetStaticPaths } from 'astro';
-import { getCollection, render, type CollectionEntry } from 'astro:content';
+import { Marked } from 'marked';
+import { markedSmartypants } from 'marked-smartypants';
+import { gfmHeadingId } from 'marked-gfm-heading-id';
 import Base from '../../layouts/Base.astro';
 import Rail from '../../components/Rail.astro';
 import PosterCard from '../../components/PosterCard.astro';
-import { platformStyle, profile } from '../../data/cv';
-
-export const getStaticPaths = (async () => {
-  const entries = await getCollection('work');
-  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
-}) satisfies GetStaticPaths;
-
-interface Props {
-  entry: CollectionEntry<'work'>;
-}
-
-const { entry } = Astro.props;
-const d = entry.data;
-const { Content } = await render(entry);
-const others = (await getCollection('work'))
-  .filter((e) => e.id !== entry.id)
-  .sort((a, b) => a.data.order - b.data.order);
-
-const facts = [
-  { label: 'Client', value: d.client },
-  { label: 'Platform', value: d.platform },
-  { label: 'My role', value: d.role },
-  { label: 'When', value: d.period },
-  ...(d.team ? [{ label: 'Team', value: d.team }] : []),
-];
+import ImpactChart from '../../components/ImpactChart.astro';
 import MvvmArchitecture from '../../components/MvvmArchitecture.astro';
 import MvvmDiagrams from '../../components/MvvmDiagrams.astro';
+import { getContent } from '../../data/content';
+
+export const getStaticPaths = (() => getContent('en').caseStudies.map((cs) => ({ params: { slug: cs.slug } }))) satisfies GetStaticPaths;
+
+const { caseStudies, platformStyle, profile, t } = getContent(Astro.currentLocale);
+const d = caseStudies.find((cs) => cs.slug === Astro.params.slug)!;
+const others = caseStudies.filter((cs) => cs.slug !== d.slug);
+
+// The case study text is Markdown in the database; a line "{{impact-chart}}" places the impact chart.
+const markdown = new Marked(gfmHeadingId(), markedSmartypants());
+const parts = d.body.split(/^\{\{impact-chart\}\}$/m).map((chunk) => markdown.parse(chunk.trim()) as string);
+
+const facts = [
+  { label: t('ui.case.client'), value: d.client },
+  { label: t('ui.case.platform'), value: platformStyle[d.platform].name },
+  { label: t('ui.case.role'), value: d.role },
+  { label: t('ui.case.when'), value: d.period },
+  ...(d.team ? [{ label: t('ui.case.team'), value: d.team }] : []),
+];
 ---
 <Base title={d.title} description={d.summary}>
   <article>
@@ -38,7 +35,7 @@ import MvvmDiagrams from '../../components/MvvmDiagrams.astro';
       <div class="wrap cs-hero-inner">
         <a class="back" href="/#work">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7" /></svg>
-          Back to browse
+          {t('ui.case.back')}
         </a>
         <p class="eyebrow-art"><span class="badge">{platformStyle[d.platform].badge}</span>{d.period}</p>
         <h1>{d.title}</h1>
@@ -57,9 +54,16 @@ import MvvmDiagrams from '../../components/MvvmDiagrams.astro';
     <div class="wrap cs-body">
       <div class="prose-cs">
         <p class="lede">{d.summary}</p>
-        <Content />
+        {
+          parts.map((html, i) => (
+            <>
+              <Fragment set:html={html} />
+              {i < parts.length - 1 && <ImpactChart />}
+            </>
+          ))
+        }
       </div>
-      <aside class="side" aria-label="Project details">
+      <aside class="side" aria-label={t('ui.case.details_label')}>
         <dl>
           {
             facts.map((f) => (
@@ -70,12 +74,12 @@ import MvvmDiagrams from '../../components/MvvmDiagrams.astro';
             ))
           }
         </dl>
-        <ul class="tags" aria-label="Technologies">
+        <ul class="tags" aria-label={t('ui.case.tags_label')}>
           {d.tags.map((t) => <li class="chip">{t}</li>)}
         </ul>
         <div class="side-cta">
-          <a class="btn btn-primary" href="/#contact">Get in touch</a>
-          <a class="btn btn-ghost" href={profile.cvFile} download>Download CV</a>
+          <a class="btn btn-primary" href="/#contact">{t('ui.common.get_in_touch')}</a>
+          <a class="btn btn-ghost" href={profile.cvFile} download>{t('ui.common.download_cv')}</a>
         </div>
       </aside>
     </div>
@@ -90,8 +94,8 @@ import MvvmDiagrams from '../../components/MvvmDiagrams.astro';
     }
   </article>
 
-  <Rail id="more" title="More like this">
-    {others.map((e) => <PosterCard entry={e} />)}
+  <Rail id="more" title={t('ui.case.more')}>
+    {others.map((cs) => <PosterCard cs={cs} />)}
   </Rail>
 </Base>
 

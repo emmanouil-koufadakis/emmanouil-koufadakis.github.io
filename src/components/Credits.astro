@@ -1,17 +1,18 @@
 ---
-import { experience, formatPeriod, platformStyle } from '../data/cv';
+import { getContent } from '../data/content';
+const { experience, formatPeriod, platformStyle, t } = getContent(Astro.currentLocale);
 ---
 <section id="credits" class="credits" aria-labelledby="credits-title">
   <div class="wrap">
-    <p class="eyebrow">Full credits</p>
-    <h2 id="credits-title" class="section-title">Every role, in order</h2>
+    <p class="eyebrow">{t('ui.credits.eyebrow')}</p>
+    <h2 id="credits-title" class="section-title">{t('ui.credits.title')}</h2>
     <ol class="list">
       {
         experience.map((role) => (
           <li id={`credit-${role.id}`} class="item" style={`--h: ${platformStyle[role.platform].hue}`}>
             <div class="when">
               <span class="period">{formatPeriod(role)}</span>
-              <span class="platform">{role.platform}</span>
+              <span class="platform">{platformStyle[role.platform].name}</span>
             </div>
             <div class="what">
               <h3>{role.title}</h3>
@@ -21,7 +22,7 @@ import { experience, formatPeriod, platformStyle } from '../data/cv';
               </ul>
               {role.caseStudy && (
                 <a class="cs" href={`/work/${role.caseStudy}/`}>
-                  Case study<span class="sr-only">: {role.title}</span> →
+                  {t('ui.credits.case_study')}<span class="sr-only">: {role.title}</span> →
                 </a>
               )}
             </div>

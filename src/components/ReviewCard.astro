@@ -1,6 +1,7 @@
 ---
 import Shine from './Shine.astro';
-import { profile, type Recommendation } from '../data/cv';
+import { getContent, type Recommendation } from '../data/content';
+const { profile, t } = getContent(Astro.currentLocale);
 
 interface Props {
   rec: Recommendation;
@@ -27,7 +28,7 @@ const initials = rec.name
         </span>
       </figcaption>
     </figure>
-    <span class="more">Read on LinkedIn<span class="sr-only"> (opens in a new tab)</span> ↗</span>
+    <span class="more">{t('ui.common.read_on_linkedin')}<span class="sr-only"> {t('ui.common.new_tab')}</span> ↗</span>
     <Shine />
   </a>
 </li>
