@@ -1,4 +1,5 @@
 ---
+import Shine from './Shine.astro';
 import { getContent } from '../data/content';
 const { skills, t } = getContent(Astro.currentLocale);
 ---
@@ -6,16 +7,17 @@ const { skills, t } = getContent(Astro.currentLocale);
   <div class="wrap">
     <p class="eyebrow">{t('ui.skills.eyebrow')}</p>
     <h2 id="skills-title" class="section-title">{t('ui.skills.title')}</h2>
-    <div class="grid">
+    <div class="grid" data-shine-sequence>
       {
         skills.map((group, i) => (
-          <section class="group" aria-labelledby={`skills-${i}`}>
+          <section class="group" aria-labelledby={`skills-${i}`} data-shine-item>
             <h3 id={`skills-${i}`}>{group.name}</h3>
             <ul>
               {group.items.map((item) => (
                 <li class="chip">{item}</li>
               ))}
             </ul>
+            <Shine diagonal />
           </section>
         ))
       }
@@ -33,14 +35,27 @@ const { skills, t } = getContent(Astro.currentLocale);
     gap: 1rem;
   }
   .group {
+    position: relative;
+    overflow: hidden;
     padding: 1.4rem 1.4rem 1.5rem;
+    /* Softer shine on these plain cards: accent tint in light mode, faint white in dark. */
+    --shine-color: light-dark(color-mix(in oklab, var(--color-accent) 30%, transparent), rgb(255 255 255 / 0.2));
     border-radius: 16px;
     background:
       radial-gradient(120% 120% at 100% 0%, color-mix(in oklab, var(--color-accent) 22%, transparent), transparent 60%),
       var(--color-bg-raised);
     border: 1px solid color-mix(in oklab, var(--color-accent) 40%, var(--color-line));
   }
+  /* The shine sits behind the card's text: above the card background, below its content. */
+  .group { isolation: isolate; }
+  .group > * { position: relative; z-index: 1; }
+  .group :global(.shine) { z-index: 0; }
   h3 { font-size: 1.15rem; font-weight: 700; }
   ul { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 1rem 0 0; padding: 0; list-style: none; }
   .chip { white-space: normal; }
 </style>
+
+<script>
+  import { initShine } from '../scripts/shine';
+  initShine();
+</script>

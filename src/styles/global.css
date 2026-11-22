@@ -159,6 +159,19 @@
   /* Popup headers loop while open, starting once the open animation has settled. */
   dialog[open] .shine { animation: shine-loop 2.4s var(--ease-out-soft) 0.3s infinite; }
 
+  /* Diagonal variant (Skills cards): the band runs corner to corner and travels from
+     bottom-left to top-right. An oversized gradient slides across the card, so the
+     band starts and ends fully outside it whatever the card's shape. */
+  .shine.shine-diagonal {
+    transform: none;
+    background: linear-gradient(to top right, transparent 42%, var(--shine-color, rgb(255 255 255 / 0.32)) 50%, transparent 58%) 100% 0% / 300% 300% no-repeat;
+  }
+  .is-shining .shine-diagonal { animation: shine-diagonal 0.9s var(--ease-out-soft); }
+  @keyframes shine-diagonal {
+    from { background-position: 100% 0%; }
+    to { background-position: 0% 100%; }
+  }
+
   @keyframes shine-sweep {
     to { transform: translateX(100%); }
   }
