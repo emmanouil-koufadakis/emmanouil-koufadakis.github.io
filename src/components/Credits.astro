@@ -1,6 +1,6 @@
 ---
 import { getContent } from '../data/content';
-const { experience, formatPeriod, platformStyle, t } = getContent(Astro.currentLocale);
+const { experience, formatPeriod, platformStyle, t, href } = getContent(Astro.currentLocale);
 ---
 <section id="credits" class="credits" aria-labelledby="credits-title">
   <div class="wrap">
@@ -21,7 +21,7 @@ const { experience, formatPeriod, platformStyle, t } = getContent(Astro.currentL
                 {role.highlights.map((h) => <li>{h}</li>)}
               </ul>
               {role.caseStudy && (
-                <a class="cs" href={`/work/${role.caseStudy}/`}>
+                <a class="cs" href={href(`/work/${role.caseStudy}/`)}>
                   {t('ui.credits.case_study')}<span class="sr-only">: {role.title}</span> →
                 </a>
               )}

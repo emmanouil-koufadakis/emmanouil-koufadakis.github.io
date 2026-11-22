@@ -1,0 +1,112 @@
+---
+/**
+ * Two flags in the top bar: English (UK flag) and Greek. Each links to the same
+ * page in that language; the current one is raised like a pressed segment.
+ */
+import { getContent, pathInLang, type Lang } from '../data/content';
+const { lang, t } = getContent(Astro.currentLocale);
+
+const options: { lang: Lang; hreflang: string }[] = [
+  { lang: 'en', hreflang: 'en-GB' },
+  { lang: 'el', hreflang: 'el' },
+];
+---
+<div class="lang" role="group" aria-label={t('ui.lang.label')}>
+  {
+    options.map((o) => {
+      const name = t(`ui.lang.${o.lang}`);
+      const current = o.lang === lang;
+      return (
+        <a
+          href={pathInLang(Astro.url.pathname, o.lang)}
+          hreflang={o.hreflang}
+          lang={o.hreflang}
+          aria-label={name}
+          aria-current={current ? 'true' : undefined}
+          title={current ? t('ui.lang.current', { language: name }) : name}
+          data-lang-link
+        >
+          {o.lang === 'en' ? (
+            <svg viewBox="0 0 60 30" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <clipPath id="flag-uk-t">
+                <path d="M30 15h30v15zv15H0zH0V0zV0h30z" />
+              </clipPath>
+              <path d="M0 0v30h60V0z" fill="#012169" />
+              <path d="M0 0l60 30m0-30L0 30" stroke="#fff" stroke-width="6" />
+              <path d="M0 0l60 30m0-30L0 30" clip-path="url(#flag-uk-t)" stroke="#C8102E" stroke-width="4" />
+              <path d="M30 0v30M0 15h60" stroke="#fff" stroke-width="10" />
+              <path d="M30 0v30M0 15h60" stroke="#C8102E" stroke-width="6" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 27 18" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <path d="M0 0h27v18H0z" fill="#0D5EAF" />
+              <path d="M10 2h17v2H10zm0 4h17v2H10zM0 10h27v2H0zm0 4h27v2H0zM4 0h2v10H4zM0 4h10v2H0z" fill="#fff" />
+            </svg>
+          )}
+        </a>
+      );
+    })
+  }
+</div>
+
+<style>
+  /* Same tile as the theme toggle, split into two segments. */
+  .lang {
+    display: flex;
+    align-items: stretch;
+    gap: 2px;
+    height: 44px;
+    padding: 3px;
+    border-radius: 10px;
+    background: color-mix(in oklab, var(--color-ink) 8%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-ink) 12%, transparent);
+  }
+  a {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    border-radius: 7px;
+    transition: background-color 0.2s, box-shadow 0.2s;
+  }
+  svg {
+    display: block;
+    width: 22px;
+    height: 15px;
+    border-radius: 3px;
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.14);
+    /* The other language's flag is muted until hovered or focused. */
+    opacity: 0.5;
+    filter: saturate(0.35);
+    transition: opacity 0.2s, filter 0.2s, transform 0.25s var(--ease-out-soft);
+  }
+  a:hover { background: color-mix(in oklab, var(--color-ink) 8%, transparent); }
+  a:hover svg,
+  a:focus-visible svg { opacity: 1; filter: none; transform: scale(1.06); }
+  a:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  a[aria-current] {
+    background: var(--color-bg-raised);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.18), inset 0 0 0 1px color-mix(in oklab, var(--color-accent) 45%, transparent);
+    cursor: default;
+  }
+  a[aria-current] svg { opacity: 1; filter: none; transform: none; }
+  a[aria-current]:focus-visible { box-shadow: var(--focus-ring); }
+
+  /* Narrow phones: slimmer segments so the bar keeps its photo, theme, CV and menu buttons. */
+  @media (max-width: 400px) {
+    a { width: 30px; }
+    svg { width: 20px; height: 14px; }
+  }
+</style>
+
+<script>
+  // Keep the visitor's place: switching language on /#skills opens /el/#skills.
+  for (const a of document.querySelectorAll<HTMLAnchorElement>('[data-lang-link]')) {
+    a.addEventListener('click', (e) => {
+      if (a.hasAttribute('aria-current')) {
+        e.preventDefault();
+        return;
+      }
+      if (location.hash && !a.hash) a.hash = location.hash;
+    });
+  }
+</script>

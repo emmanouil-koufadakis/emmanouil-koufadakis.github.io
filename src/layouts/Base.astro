@@ -2,8 +2,8 @@
 import '../styles/global.css';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
-import { getContent } from '../data/content';
-const { profile, t } = getContent(Astro.currentLocale);
+import { getContent, pathInLang } from '../data/content';
+const { lang, profile, t, htmlLang, ogLocale, ogImage: defaultImage } = getContent(Astro.currentLocale);
 import { GOATCOUNTER_CODE } from '../data/analytics';
 
 interface Props {
@@ -17,13 +17,19 @@ interface Props {
 const {
   title,
   description = `${profile.name}, ${profile.headline}. ${profile.pitch}`,
-  image = '/og.png',
+  image = defaultImage,
   noindex = false,
 } = Astro.props;
 
 const fullTitle = title ? `${title} · ${profile.name}` : `${profile.name} · ${profile.headline}`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = new URL(image, Astro.site);
+// The same page in each language, for search engines (hreflang). English is the default.
+const alternates = [
+  { hreflang: 'en-GB', href: new URL(pathInLang(Astro.url.pathname, 'en'), Astro.site) },
+  { hreflang: 'el', href: new URL(pathInLang(Astro.url.pathname, 'el'), Astro.site) },
+  { hreflang: 'x-default', href: new URL(pathInLang(Astro.url.pathname, 'en'), Astro.site) },
+];
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -32,7 +38,7 @@ const jsonLd = {
   alternateName: profile.knownAs,
   jobTitle: profile.headline,
   description: profile.cvSummary,
-  url: new URL('/', Astro.site).href,
+  url: new URL(pathInLang('/', lang), Astro.site).href,
   email: `mailto:${profile.email}`,
   address: { '@type': 'PostalAddress', addressLocality: 'Surbiton', addressRegion: 'Surrey', addressCountry: 'GB' },
   sameAs: [profile.linkedin],
@@ -44,7 +50,7 @@ const jsonLd = {
 };
 ---
 <!doctype html>
-<html lang="en-GB">
+<html lang={htmlLang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -52,12 +58,15 @@ const jsonLd = {
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex" />}
+    {!noindex && alternates.map((a) => <link rel="alternate" hreflang={a.hreflang} href={a.href} />)}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <meta name="theme-color" content="#16131d" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#f8f7f3" media="(prefers-color-scheme: light)" />
 
     <meta property="og:type" content="profile" />
+    <meta property="og:locale" content={ogLocale} />
+    <meta property="og:locale:alternate" content={ogLocale === 'el_GR' ? 'en_GB' : 'el_GR'} />
     <meta property="og:site_name" content={profile.name} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />

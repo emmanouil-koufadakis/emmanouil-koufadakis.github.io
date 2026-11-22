@@ -72,6 +72,16 @@ export type CaseStudy = {
 
 /* ---------- language-independent helpers ---------- */
 
+/**
+ * The same page in another language: English pages live at the root, Greek
+ * ones under /el/. The 404 page has no counterpart, so it maps to the home page.
+ */
+export function pathInLang(pathname: string, lang: Lang) {
+  let p = pathname.replace(/^\/el(?=\/|$)/, '') || '/';
+  if (/^\/404(\.html)?\/?$/.test(p)) p = '/';
+  return lang === 'el' ? `/el${p}` : p;
+}
+
 /** Months since year 0, so dates can be compared and subtracted. */
 export const monthIndex = (ym: string) => {
   const [y, m] = ym.split('-').map(Number);
@@ -143,7 +153,7 @@ function load(lang: Lang) {
   /** Rounded down to the half year: 76 months → "6+ yrs", 43 → "3.5+ yrs", 11 → "11 months". */
   const formatDuration = (months: number) => {
     if (months < 12) return t('ui.duration.months', { n: months });
-    const years = Math.floor(months / 6) / 2;
+    const years = String(Math.floor(months / 6) / 2).replace('.', t('ui.number.decimal'));
     return t('ui.duration.years', { n: `${years}${months % 6 ? '+' : ''}` });
   };
 
@@ -177,7 +187,8 @@ function load(lang: Lang) {
     availability: t('profile.availability'),
     workPreference: t('profile.work_preference'),
     stats: all('SELECT id, value FROM stats ORDER BY sort').map((r) => ({ value: String(r.value), label: t(`stat.${r.id}.label`) })),
-    cvFile: setting('cv_file'),
+    /** The PDF in this language (the Greek one falls back to English if not set). */
+    cvFile: (lang === 'el' && setting('cv_file_el')) || setting('cv_file'),
   };
 
   /* ----- experience and clients ----- */
@@ -291,6 +302,14 @@ function load(lang: Lang) {
 
   return {
     lang,
+    /** Value for <html lang>. */
+    htmlLang: lang === 'el' ? 'el' : 'en-GB',
+    /** Open Graph locale. */
+    ogLocale: lang === 'el' ? 'el_GR' : 'en_GB',
+    /** Social preview image for this language. */
+    ogImage: lang === 'el' ? '/og-el.png' : '/og.png',
+    /** A site path in this language: href('/#work') is '/el/#work' on Greek pages. */
+    href: (p: string) => pathInLang(p, lang),
     t,
     opt,
     list,

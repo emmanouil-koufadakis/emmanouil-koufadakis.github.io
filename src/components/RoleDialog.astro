@@ -1,7 +1,7 @@
 ---
 import Shine from './Shine.astro';
 import { getContent, type Role } from '../data/content';
-const { formatPeriod, platformStyle, t } = getContent(Astro.currentLocale);
+const { formatPeriod, platformStyle, t, href } = getContent(Astro.currentLocale);
 
 interface Props {
   role: Role;
@@ -42,7 +42,7 @@ const ps = platformStyle[role.platform];
       }
       {
         role.caseStudy && (
-          <a class="btn btn-primary cs-link" href={`/work/${role.caseStudy}/`}>
+          <a class="btn btn-primary cs-link" href={href(`/work/${role.caseStudy}/`)}>
             {t('ui.common.read_case_study')}
             <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-5-5 5 5-5 5" /></svg>
           </a>

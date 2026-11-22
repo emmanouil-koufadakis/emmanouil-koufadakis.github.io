@@ -209,6 +209,10 @@ const rows = guidePlatforms.map(({ platform, label }) => ({
     text-transform: uppercase;
   }
 
+  /* Commissioner (the Greek font) runs wider, so the channel names get a little more room. */
+  @media (min-width: 641px) {
+    :global(:root:lang(el)) .guide { --chan: 10.25rem; }
+  }
   @media (max-width: 640px) {
     .guide { --chan: 7.25rem; min-width: 720px; }
     .chan { padding: 0 0.6rem; gap: 0.45rem; }

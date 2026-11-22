@@ -1,0 +1,181 @@
+---
+/**
+ * Print-ready CV. `npm run render:assets` prints this page to
+ * public/Emmanouil_Koufadakis_CV.pdf. Not linked from the site.
+ */
+import '../styles/global.css';
+import { CV_PHONE } from 'astro:env/server';
+import { getContent } from '../data/content';
+const { certifications, education, experience, formatPeriod, languages, profile, skills, volunteering, t, htmlLang } = getContent(Astro.currentLocale);
+
+const siteUrl = new URL('/', Astro.site);
+const showSite = !['localhost', '127.0.0.1'].includes(siteUrl.hostname);
+const main = experience.filter((r) => r.onCv);
+const earlier = experience.filter((r) => !r.onCv);
+---
+<!doctype html>
+<html lang={htmlLang} data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>{t('ui.cv.page_title', { name: profile.name })}</title>
+  </head>
+  <body>
+    <article class="page">
+      <header class="top">
+        <h1>{profile.name}<span class="cred">, {profile.credentials}</span></h1>
+        <p class="headline">{profile.headline} · {t('ui.cv.headline_skills')}</p>
+        <p class="contact">
+          <span>{profile.location}</span>
+          {CV_PHONE && <span>{CV_PHONE}</span>}
+          <a href={`mailto:${profile.email}`}>{profile.email}</a>
+        </p>
+        <p class="contact">
+          <a href={profile.linkedin}>{profile.linkedinLabel}</a>
+          {showSite && <a href={siteUrl.href}>{siteUrl.host}</a>}
+        </p>
+      </header>
+
+      <section>
+        <h2>{t('ui.cv.profile')}</h2>
+        <p>{profile.cvSummary}</p>
+      </section>
+
+      <section>
+        <h2>{t('ui.cv.skills')}</h2>
+        <dl class="skills">
+          {
+            skills.map((g) => (
+              <div>
+                <dt>{g.name}</dt>
+                <dd>{g.items.join(', ')}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </section>
+
+      <section>
+        <h2>{t('ui.cv.experience')}</h2>
+        {
+          main.map((r) => (
+            <div class="role">
+              <div class="role-head">
+                <h3>{r.title}</h3>
+                <span class="period">{formatPeriod(r)}</span>
+              </div>
+              <p class="company">{r.company}</p>
+              <ul>
+                {r.highlights.map((h) => (
+                  <li>{h}</li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </section>
+
+      <section>
+        <h2>{t('ui.cv.earlier')}</h2>
+        <ul class="earlier">
+          {
+            earlier.map((r) => (
+              <li>
+                <strong>{r.title}</strong>, {r.company} <span class="period">({formatPeriod(r)})</span>: {r.highlights[0]}
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section class="two">
+        <div>
+          <h2>{t('ui.synopsis.education')}</h2>
+          <ul class="plain">
+            {
+              education.map((e) => (
+                <li>
+                  <strong>{e.degree}</strong>
+                  {e.detail && `, ${e.detail}`}, {e.school}, {e.year}
+                  {e.dissertation && <span class="diss">{t('ui.common.dissertation')} {e.dissertation}</span>}
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+        <div>
+          <h2>{t('ui.certs.eyebrow')}</h2>
+          <ul class="plain">
+            {certifications.map((c) => <li><strong>{c.name}</strong>, {c.issuer}, {c.date}</li>)}
+          </ul>
+        </div>
+      </section>
+
+      <section class="extras">
+        <h2>{t('ui.cv.extras')}</h2>
+        <p><strong>{t('ui.cv.languages_label')}</strong> {languages.map((l) => `${l.name} (${l.level.toLowerCase()})`).join(', ')}</p>
+        {volunteering.map((v) => <p><strong>{t('ui.cv.volunteering_label')}</strong> {v.detail} ({v.org})</p>)}
+      </section>
+    </article>
+  </body>
+</html>
+
+<style>
+  @page {
+    size: A4;
+    margin: 11mm 14mm 11mm;
+  }
+  :global(html), :global(body) { background: #fff; color: #1d1a24; scroll-behavior: auto; }
+  .page {
+    max-width: 180mm;
+    margin: 0 auto;
+    font-size: 9.6pt;
+    line-height: 1.38;
+    color: #2a2632;
+  }
+  /* Greek runs about a fifth longer than English: slightly smaller type keeps the CV to two pages. */
+  :global(html:lang(el)) .page { font-size: 9.1pt; line-height: 1.34; }
+  @media screen {
+    .page { padding: 16mm 0; }
+  }
+  .top { border-bottom: 2px solid #5b2fd6; padding-bottom: 3.2mm; margin-bottom: 1.5mm; }
+  h1 { font-size: 23pt; font-weight: 800; letter-spacing: 0; color: #15121c; line-height: 1.05; }
+  .cred { font-weight: 600; color: #6b6676; font-size: 15pt; }
+  .headline { margin-top: 1.4mm; font-weight: 650; color: #5b2fd6; font-size: 10.5pt; }
+  .contact { margin-top: 1.2mm; display: flex; flex-wrap: wrap; gap: 0 3.5mm; color: #4a4554; }
+  .contact > * + *::before { content: '|'; margin-right: 3.5mm; color: #b5b0bf; }
+  .contact a { color: inherit; text-decoration: none; }
+  section { margin-top: 3.4mm; }
+  h2 {
+    font-family: var(--font-sans);
+    font-size: 9pt;
+    font-weight: 750;
+    letter-spacing: 0; /* letter-spacing breaks words apart for ATS text extraction */
+    text-transform: uppercase;
+    color: #5b2fd6;
+    margin-bottom: 1.6mm;
+    padding-bottom: 0.8mm;
+    border-bottom: 0.6px solid #ddd8e6;
+  }
+  .skills { display: grid; gap: 0.9mm; margin: 0; }
+  .skills > div { display: grid; grid-template-columns: 38mm 1fr; gap: 3mm; }
+  .skills dt { font-weight: 700; color: #1d1a24; }
+  .skills dd { margin: 0; }
+  .role { break-inside: avoid; margin-top: 2.2mm; }
+  .role:first-of-type { margin-top: 0; }
+  .role-head { display: flex; justify-content: space-between; align-items: baseline; gap: 4mm; }
+  h3 { font-family: var(--font-sans); font-size: 10.4pt; font-weight: 750; letter-spacing: 0; color: #15121c; }
+  .period { color: #6b6676; font-size: 8.8pt; white-space: nowrap; }
+  .company { font-weight: 600; color: #4a4554; }
+  ul { margin: 0.8mm 0 0; padding-left: 4.2mm; list-style: disc; }
+  li { margin-top: 0.5mm; }
+  li::marker { color: #8a63f0; }
+  .earlier li { break-inside: avoid; }
+  .plain { list-style: none; padding: 0; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8mm; break-inside: avoid; }
+  .plain li + li { margin-top: 1.2mm; }
+  .diss { display: block; color: #6b6676; font-style: italic; }
+  .extras p + p { margin-top: 0.6mm; }
+  strong { color: #1d1a24; font-weight: 700; }
+</style>
